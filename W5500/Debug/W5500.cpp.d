@@ -1,0 +1,32 @@
+C:\Users\mattt\AppData\Local\Temp\VMBuilds\W5500\ethernet\Debug\W5500.cpp.o: \
+ C:\Users\mattt\AppData\Local\Temp\VMBuilds\W5500\ethernet\Debug\W5500.cpp \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/arduino.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/binary.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/WCharacter.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/WString.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/HardwareSerial.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/Stream.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/Print.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/Printable.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/USBAPI.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/Arduino.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\variants\ethernet/pins_arduino.h \
+ C:\Users\mattt\AppData\Local\Temp\VMBuilds\W5500\ethernet\Debug\configuration.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\libraries\SPI\src/SPI.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/Arduino.h \
+ D:\Users\mattt\Documents\Arduino\libraries\Ethernet2\src/Ethernet2.h \
+ D:\Users\mattt\Documents\Arduino\libraries\Ethernet2\src/utility/w5500.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/IPAddress.h \
+ D:\Users\mattt\Documents\Arduino\libraries\Ethernet2\src/EthernetClient.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/Print.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/Client.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/IPAddress.h \
+ D:\Users\mattt\Documents\Arduino\libraries\Ethernet2\src/EthernetServer.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/Server.h \
+ D:\Users\mattt\Documents\Arduino\libraries\Ethernet2\src/Dhcp.h \
+ D:\Users\mattt\Documents\Arduino\libraries\Ethernet2\src/EthernetUdp2.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/Udp.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\cores\arduino/Stream.h \
+ D:\Users\mattt\Documents\Arduino\libraries\PubSubClient\src/PubSubClient.h \
+ C:\Users\mattt\Desktop\Tools\Teensy\arduino-1.8.5\hardware\arduino\avr\libraries\Wire\src/Wire.h \
+ c:\program\ files\ (x86)\microsoft\ visual\ studio\2017\community\common7\ide\extensions\rklz3tds.z1r\Micro\ Platforms\default\debuggers\VM_DBG/VM_DBG.h

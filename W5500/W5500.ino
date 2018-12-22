@@ -9,11 +9,11 @@
 #include <SPI.h>                  // For networking
 #include <Ethernet2.h>             // For networking
 #include <PubSubClient.h>         // For MQTT
-#include "Wire.h"                 // For MAC address ROM
+#include "Wire.h"                 // For MAC address //not working on KeyStudio W5500
 
 
 //Configuration //
-#define Enable_Dhcp               false   // true/false
+#define Enable_Dhcp               true   // true/false
 IPAddress ip(192, 168, 1, 35);                //Static Adress if Enable_Dhcp = false
 
 #define Enable_Mac_Address_Rom    false   // true/false
@@ -130,16 +130,21 @@ void setup()
 	else {
 		Serial.print(F("Using static MAC address: "));
 	}
-	// Print the IP address
+	// Print MAC address
 	char tmpBuf[17];
 	sprintf(tmpBuf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 	Serial.println(tmpBuf);
 
-	// Set up the Ethernet library to talk to the Wiznet board
 	if (Enable_Dhcp == true)
 	{
+		Serial.println("Using Dhcp, Acquiring IP Address ...");
+		while (!Ethernet.begin(mac))
+		{
+			Serial.println("Error trying to get dynamic ip ... retrying in 5 seconds");
+			delay(5000);
+		}
 		Serial.print("Using Dhcp : ");
-		Ethernet.begin(mac);      // Use Dhcp
+
 	}
 	else {
 		Serial.print("Using Static IP : ");
