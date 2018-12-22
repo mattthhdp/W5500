@@ -14,7 +14,7 @@
 
 //Configuration //
 #define Enable_Dhcp               true   // true/false
-IPAddress ip(192, 168, 1, 35);           //Static Adress if Enable_Dhcp = false
+IPAddress ip(192, 168, 1, 35);           //Static Adress if Enable_Dhcp = false 
 
 #define Enable_Mac_Address_Rom    false   // true/false
 static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE };  // Set if there is no Mac_room
