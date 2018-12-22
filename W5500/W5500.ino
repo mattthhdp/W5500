@@ -168,8 +168,7 @@ void loop()
 		reconnect();
 	}
 	client.loop();
-
-
+	//Test MQTT Relay
 	}
 
 /// Set all pint to OUTPUT and state to 0 = OFF
