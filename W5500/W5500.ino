@@ -41,10 +41,12 @@ void callback(char* topic, byte* payload, unsigned int length)
 	}
 	Serial.println();
 
-	byte output_number = payload[0] - '0';
-	byte output_state = payload[2] - '0';
+	byte output_number = payload[0] + payload[1] - '0'; //Essayer d'aditionner les 2 payload ...
+
+	byte output_state = payload[3] - '0';
 	Serial.print("Output: ");
-	Serial.println(output_number);
+	Serial.print(output_number);
+
 	Serial.print("State: ");
 	Serial.println(output_state);	
 
@@ -109,9 +111,9 @@ void reconnect() {
 			else
 				Serial.print(" Impossible Error ... lol"); 
 #pragma endregion
-			Serial.println(" try again in 5 seconds");
+			Serial.println(" try again in 2 seconds");
 			// Wait 5 seconds before retrying
-			delay(5000);
+			delay(2000);
 		}
 	}
 }
@@ -140,8 +142,8 @@ void setup()
 		Serial.println("Using Dhcp, Acquiring IP Address ...");
 		while (!Ethernet.begin(mac))
 		{
-			Serial.println("Error trying to get dynamic ip ... retrying in 5 seconds");
-			delay(5000);
+			Serial.println("Error trying to get dynamic ip ... retrying in 2 seconds");
+			delay(2000);
 		}
 		Serial.print("Using Dhcp : ");
 
@@ -194,14 +196,14 @@ void turn_output_off(int output_number)
 
 	if (output_number == 0)
 	{
-		for (int i = 0; i < 8; i++)
+		for (int i = 0; i < output_number_pin; i++)
 		{
 			digitalWrite(output_pin[i], LOW);
 			output_state[i] = 0;
 		}
 		sprintf(message, "Turning OFF all outputs");
 	}
-	else if (output_number < 9) {
+	else if (output_number < output_number_pin + 1) {
 		digitalWrite(output_pin[output_index], LOW);
 		output_state[output_index] = 0;
 		sprintf(message, "Turning OFF output %d", output_number);
@@ -216,14 +218,14 @@ void turn_output_on(int output_number)
 
 	if (output_number == 0)
 	{
-		for (int i = 0; i < 8; i++)
+		for (int i = 0; i < output_number_pin; i++)
 		{
 			digitalWrite(output_pin[i], HIGH);
 			output_state[output_index] = 1;
 		}
 		sprintf(message, "Turning ON all outputs");
 	}
-	else if (output_number < 9) {
+	else if (output_number < output_number_pin + 1) {
 		digitalWrite(output_pin[output_index], HIGH);
 		output_state[output_index] = 1;
 		sprintf(message, "Turning ON output %d", output_number);
