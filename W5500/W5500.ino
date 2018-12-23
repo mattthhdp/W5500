@@ -22,18 +22,19 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE };  // Set if there 
 
 
 // MQTT Settings //
-IPAddress broker(192, 168, 1, 111);        // MQTT broker
+IPAddress broker(192, 168, 1, 116);        // MQTT broker
 const char* statusTopic = "events";    // MQTT topic to publish status reports
 char messageBuffer[100];
 char topicBuffer[100];
 char clientBuffer[50];
+char command_topic[50];
 
 //Relay Pinout //
-int output_pin[20] = { A0, A1, A2, A3, A4, A5, 0, 1, 2, 3,
-                        4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
-int output_state[20] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-const int output_number_pin = 20;
+int output_pin[16] = { A0, A1, A2, A3, A4, A5, 2, 3, 4, 5, 6, //SPI = 10,11,12,13		//0,1 rx,tx for usb
+                        7, 8, 9, 18, 19 };
+int output_state[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0 };
+const int output_number_pin = 16;
 
 #pragma region Setup
 
@@ -49,6 +50,23 @@ void callback(char* topic, byte* payload, unsigned int length)
 		Serial.print((char)payload[i]);
 	}
 	Serial.println();
+
+	byte output_number = payload[0] - '0';
+	byte output_state = payload[2] - '0';
+	Serial.print("Output: ");
+	Serial.println(output_number);
+	Serial.print("State: ");
+	Serial.println(output_state);	
+
+	switch (output_state)
+	{
+	case 0:
+		turn_output_off(output_number);
+		break;
+	case 1:
+		turn_output_on(output_number);
+		break;
+	}
 }
 
 // Instantiate MQTT client
@@ -69,8 +87,12 @@ void reconnect() {
 			// Once connected, publish an announcement...
 			clientString.toCharArray(clientBuffer, clientString.length() + 1);
 			client.publish(statusTopic, clientBuffer);
-			// ... and resubscribe
-			//client.subscribe("inTopic");
+			Serial.print("Publishing to : ");
+			Serial.println(statusTopic);
+
+			client.subscribe(command_topic);
+			Serial.print("Subscribing to ");
+			Serial.println(command_topic);
 		}
 		else {
 			Serial.print("failed, rc=");
@@ -164,6 +186,7 @@ void setup()
 	String clientString = "Starting Arduino-" + Ethernet.localIP();
 	clientString.toCharArray(clientBuffer, clientString.length() + 1);
 	client.publish(statusTopic, clientBuffer);
+	sprintf(command_topic, "device/command/");  // For receiving messages
 	reconnect();
 
 	}
@@ -173,7 +196,6 @@ void loop()
 		reconnect();
 	}
 	client.loop();
-	//Test MQTT Relay
 	}
 
 /// Set all pint to OUTPUT and state to 0 = OFF
