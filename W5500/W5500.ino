@@ -9,17 +9,12 @@
 #include <SPI.h>                  // For networking
 #include <Ethernet2.h>             // For networking
 #include <PubSubClient.h>         // For MQTT
-#include "Wire.h"                 // For MAC address //not working on KeyStudio W5500
-
 
 //Configuration //
 #define Enable_Dhcp               true   // true/false
 IPAddress ip(192, 168, 1, 35);           //Static Adress if Enable_Dhcp = false 
 
-#define Enable_Mac_Address_Rom    false   // true/false
 static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE };  // Set if there is no Mac_room
-#define MAC_I2C_ADDRESS             0x50   // Microchip 24AA125E48 I2C ROM address
-
 
 // MQTT Settings //
 IPAddress broker(192, 168, 1, 116);        // MQTT broker
@@ -30,17 +25,12 @@ char clientBuffer[50];
 char command_topic[50];
 
 //Relay Pinout //
-int output_pin[16] = { A0, A1, A2, A3, A4, A5, 2, 3, 4, 5, 6, //SPI = 10,11,12,13		//0,1 rx,tx for usb
-                        7, 8, 9, 18, 19 };
-int output_state[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                         0, 0, 0, 0, 0, 0 };
+int output_pin[16] = { 2,3,4,5,6,7,8,9,14,15,16,17,18,19 }; //SPI = 10,11,12,13		//0,1 rx,tx for usb
+int output_state[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 const int output_number_pin = 16;
 
 #pragma region Setup
 
-/**
- * MQTT callback
- */
 void callback(char* topic, byte* payload, unsigned int length)
 {
 	Serial.print("Message arrived [");
@@ -139,20 +129,8 @@ void setup()
 
 #pragma region Mac and ip Setup
 
-	if (Enable_Mac_Address_Rom == true)
-	{
-		Serial.print(F("Getting MAC address from ROM: "));
-		mac[0] = readRegister(0xFA);
-		mac[1] = readRegister(0xFB);
-		mac[2] = readRegister(0xFC);
-		mac[3] = readRegister(0xFD);
-		mac[4] = readRegister(0xFE);
-		mac[5] = readRegister(0xFF);
-	}
-	else {
-		Serial.print(F("Using static MAC address: "));
-	}
-	// Print MAC address
+	
+	Serial.print(F("MAC address: "));
 	char tmpBuf[17];
 	sprintf(tmpBuf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 	Serial.println(tmpBuf);
@@ -178,8 +156,8 @@ void setup()
 
 
 #pragma endregion
-	enable_and_reset_all_outputs(); //Reset and Set all pin on OUTPUT mode
 
+	enable_and_reset_all_outputs(); //Reset and Set all pin on OUTPUT mode
 
 	client.setServer(broker, 1883);
 	client.setCallback(callback);
@@ -252,20 +230,4 @@ void turn_output_on(int output_number)
 	}
 
 	Serial.println(message);
-}
-
-byte readRegister(byte r)
-{
-	unsigned char v;
-	Wire.beginTransmission(MAC_I2C_ADDRESS);
-	Wire.write(r);  // Register to read
-	Wire.endTransmission();
-
-	Wire.requestFrom(MAC_I2C_ADDRESS, 1); // Read a byte
-	while (!Wire.available())
-	{
-		// Wait
-	}
-	v = Wire.read();
-	return v;
 }
