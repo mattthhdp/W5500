@@ -5,6 +5,7 @@
 */
 
 
+#include <ArduinoJson.hpp>
 #include "configuration.h"
 #include <SPI.h>                  // For networking
 #include <Ethernet2.h>             // For networking
@@ -18,14 +19,19 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE };  // Set if there 
 
 // MQTT Settings //
 IPAddress broker(192, 168, 1, 116);        // MQTT broker
+const char* subscribeTo[5] = { "/home/test1/", "/home/test2/","/home/test3/","/home/test4/","/home/test5/" };
 const char* statusTopic = "events";    // MQTT topic to publish status reports
+// Instantiate MQTT client
+//PubSubClient client(broker, 1883, callback);
+EthernetClient ethclient;
+PubSubClient client(ethclient);
 char messageBuffer[100];
 char topicBuffer[100];
 char clientBuffer[50];
 char command_topic[50];
 
 //Relay Pinout //
-int output_pin[16] = { 2,3,4,5,6,7,8,9,14,15,16,17,18,19 }; //SPI = 10,11,12,13		//0,1 rx,tx for usb
+int output_pin[16] = { A0,A1,A2,A3,A4,A5,8,9,14,15,16,17,18,19 }; //SPI = 10,11,12,13		//0,1 rx,tx for usb
 int output_state[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 const int output_number_pin = 16;
 
@@ -39,32 +45,40 @@ void callback(char* topic, byte* payload, unsigned int length)
 	for (int i = 0; i < length; i++) {
 		Serial.print((char)payload[i]);
 	}
+	byte output_number = payload[0] - '0';
+
 	Serial.println();
 
-	byte output_number = payload[0] + payload[1] - '0'; //Essayer d'aditionner les 2 payload ...
-
-	byte output_state = payload[3] - '0';
-	Serial.print("Output: ");
-	Serial.print(output_number);
-
-	Serial.print("State: ");
-	Serial.println(output_state);	
-
-	switch (output_state)
+	for ( int i = 0; i < output_number_pin; i++)
 	{
-	case 0:
-		turn_output_off(output_number);
-		break;
-	case 1:
-		turn_output_on(output_number);
-		break;
+		int strcomparison = strcmp(topic, subscribeTo[i]);
+		if (strcomparison == 0)
+		{
+			Serial.print("Matched Topic # ");
+			Serial.println(i);
+			if (output_number == 1)// || ((char)payload[0] == '1'))
+			{
+				digitalWrite(output_pin[i], HIGH);
+				output_state[i] = 1;
+				Serial.print("Output: ");
+				Serial.print(output_pin[i]);
+				Serial.print(" State: ");
+				Serial.println(output_state[i]);
+			}
+			if (output_number == 0)
+			{
+				digitalWrite(output_pin[i], LOW);
+				output_state[i] = 0;
+				Serial.print("Output: ");
+				Serial.print(output_pin[i]);
+				Serial.print(" State: ");
+				Serial.println(output_state[i]);
+			}
+		}
+
 	}
 }
 
-// Instantiate MQTT client
-//PubSubClient client(broker, 1883, callback);
-EthernetClient ethclient;
-PubSubClient client(ethclient);
 
 void reconnect() {
 	// Loop until we're reconnected
@@ -78,13 +92,18 @@ void reconnect() {
 			Serial.println("connected");
 			// Once connected, publish an announcement...
 			clientString.toCharArray(clientBuffer, clientString.length() + 1);
-			client.publish(statusTopic, clientBuffer);
+			//client.publish(statusTopic, clientBuffer);
+			client.publish(statusTopic, clientBuffer, true);
 			Serial.print("Publishing to : ");
 			Serial.println(statusTopic);
 
-			client.subscribe(command_topic);
-			Serial.print("Subscribing to ");
-			Serial.println(command_topic);
+			for (int i = 0; i < 5; i++)
+			{
+				client.subscribe(subscribeTo[i]);
+				Serial.println("Subscribing to :");
+				Serial.println(subscribeTo[i]);
+			}
+			
 		}
 		else {
 			Serial.print("failed, rc=");
@@ -163,10 +182,8 @@ void setup()
 
 	client.setServer(broker, 1883);
 	client.setCallback(callback);
-	String clientString = "Starting Arduino-" + Ethernet.localIP();
-	clientString.toCharArray(clientBuffer, clientString.length() + 1);
 	client.publish(statusTopic, clientBuffer);
-	sprintf(command_topic, "device/command/");  // For receiving messages
+
 	reconnect();
 
 	}
@@ -192,20 +209,11 @@ void enable_and_reset_all_outputs()
 void turn_output_off(int output_number)
 {
 	char message[25];
-	byte output_index = output_number - 1;
 
-	if (output_number == 0)
+	if (output_number < output_number_pin + 1) 
 	{
-		for (int i = 0; i < output_number_pin; i++)
-		{
-			digitalWrite(output_pin[i], LOW);
-			output_state[i] = 0;
-		}
-		sprintf(message, "Turning OFF all outputs");
-	}
-	else if (output_number < output_number_pin + 1) {
-		digitalWrite(output_pin[output_index], LOW);
-		output_state[output_index] = 0;
+		digitalWrite(output_pin[output_number], LOW);
+		output_state[output_number] = 0;
 		sprintf(message, "Turning OFF output %d", output_number);
 	}
 
@@ -214,20 +222,11 @@ void turn_output_off(int output_number)
 void turn_output_on(int output_number)
 {
 	char message[25];
-	byte output_index = output_number - 1;
 
-	if (output_number == 0)
+	if (output_number < output_number_pin + 1) 
 	{
-		for (int i = 0; i < output_number_pin; i++)
-		{
-			digitalWrite(output_pin[i], HIGH);
-			output_state[output_index] = 1;
-		}
-		sprintf(message, "Turning ON all outputs");
-	}
-	else if (output_number < output_number_pin + 1) {
-		digitalWrite(output_pin[output_index], HIGH);
-		output_state[output_index] = 1;
+		digitalWrite(output_pin[output_number], HIGH);
+		output_state[output_number] = 1;
 		sprintf(message, "Turning ON output %d", output_number);
 	}
 
