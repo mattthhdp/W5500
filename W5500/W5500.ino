@@ -5,7 +5,8 @@
 */
 
 
-#include <ArduinoJson.hpp>
+#include <DHT_U.h>
+//#include <dht.h>				 // For temperature / humidity sensor
 #include "configuration.h"
 #include <SPI.h>                  // For networking
 #include <Ethernet2.h>             // For networking
@@ -15,12 +16,29 @@
 #define Enable_Dhcp               true   // true/false
 IPAddress ip(192, 168, 1, 35);           //Static Adress if Enable_Dhcp = false 
 
+//Static Mac Address
 static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE };  // Set if there is no Mac_room
+
+#define DHTTYPE DHT22
+#define DHTPIN  2
+DHT dht(DHTPIN, DHTTYPE);
+unsigned long lastSend = 0;
 
 // MQTT Settings //
 IPAddress broker(192, 168, 1, 116);        // MQTT broker
 const char* subscribeTo[5] = { "/home/test1/", "/home/test2/","/home/test3/","/home/test4/","/home/test5/" };
-const char* statusTopic = "events";    // MQTT topic to publish status reports
+//SPI = 10,11,12,13		//0,1 rx,tx for usb
+int output_pin[6] = { A0,A1,A2,A3,A4,A5 }; //Relay Pinout
+int output_state[6] = { 0, 0, 0, 0, 0, 0 };
+const int output_number_pin = 6;
+
+const char* statusTopic[5] = { "/home/test1/set/", "/home/test2/set/","/home/test3/set/","/home/test4/set/","/home/test5/set/" };    // MQTT topic to publish status reports
+int input_pin[8] = { 8,9,14,15,16,17,18,19 }; //SPI = 10,11,12,13		//0,1 rx,tx for usb
+int input_state[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+const int input_number_pin = 8;
+byte lastButtonPressed = 0;
+#define DEBOUNCE_DELAY 50
+
 // Instantiate MQTT client
 //PubSubClient client(broker, 1883, callback);
 EthernetClient ethclient;
@@ -30,10 +48,6 @@ char topicBuffer[100];
 char clientBuffer[50];
 char command_topic[50];
 
-//Relay Pinout //
-int output_pin[16] = { A0,A1,A2,A3,A4,A5,8,9,14,15,16,17,18,19 }; //SPI = 10,11,12,13		//0,1 rx,tx for usb
-int output_state[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-const int output_number_pin = 16;
 
 #pragma region Setup
 
@@ -90,13 +104,17 @@ void reconnect() {
 		clientString.toCharArray(clientBuffer, clientString.length() + 1);
 		if (client.connect(clientBuffer)) {
 			Serial.println("connected");
-			// Once connected, publish an announcement...
 			clientString.toCharArray(clientBuffer, clientString.length() + 1);
-			//client.publish(statusTopic, clientBuffer);
-			client.publish(statusTopic, clientBuffer, true);
-			Serial.print("Publishing to : ");
-			Serial.println(statusTopic);
 
+			//Publishing Sensors and Light Switch to//
+			for (int i = 0; i < 5; i++)
+			{
+				client.publish(statusTopic[i],clientBuffer);
+				Serial.println("Publishing to :");
+				Serial.println(statusTopic[i]);
+			}
+
+			//Subscribe for the relay//
 			for (int i = 0; i < 5; i++)
 			{
 				client.subscribe(subscribeTo[i]);
@@ -105,6 +123,7 @@ void reconnect() {
 			}
 			
 		}
+		//If not connected//
 		else {
 			Serial.print("failed, rc=");
 			Serial.print(client.state());
@@ -150,7 +169,6 @@ void setup()
 
 #pragma region Mac and ip Setup
 
-	
 	Serial.print(F("MAC address: "));
 	char tmpBuf[17];
 	sprintf(tmpBuf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
@@ -179,20 +197,25 @@ void setup()
 #pragma endregion
 
 	enable_and_reset_all_outputs(); //Reset and Set all pin on OUTPUT mode
+	enable_and_reset_all_inputs();  //Reset and Set all pin on INPUT mode
 
 	client.setServer(broker, 1883);
 	client.setCallback(callback);
-	client.publish(statusTopic, clientBuffer);
 
 	reconnect();
 
 	}
 void loop() 
 	{
-	if (!client.connected()) {
+	if (!client.connected()) 
+	{
 		reconnect();
 	}
+
+	readDHT();
+
 	client.loop();
+
 	}
 
 /// Set all pint to OUTPUT and state to 0 = OFF
@@ -203,6 +226,16 @@ void enable_and_reset_all_outputs()
 		pinMode(output_pin[i], OUTPUT);
 		digitalWrite(output_pin[i], output_state[i]);
 		output_state[i] = 0;
+	}
+}
+
+void enable_and_reset_all_inputs()
+{
+	for (int i = 0; i < input_number_pin; i++)
+	{
+		pinMode(input_pin[i], INPUT);
+		digitalWrite(input_pin[i], input_state[i]);
+		input_state[i] = 0;
 	}
 }
 
@@ -231,4 +264,47 @@ void turn_output_on(int output_number)
 	}
 
 	Serial.println(message);
+}
+
+
+void readDHT()
+{
+	if (millis() - lastSend > 1000)
+	{
+		Serial.println("Reading DHT22");
+		float humidity = dht.readHumidity();
+		float temperature = dht.readTemperature();
+
+		// Check if any reads failed
+		if (isnan(humidity) || isnan(temperature)) {
+			Serial.println("Failed to read DHT sensor!");
+				return;
+		}
+
+		Serial.print("Humidity: ");
+		Serial.print(humidity);
+		Serial.print(" %\t");
+		Serial.print("Temperature: ");
+		Serial.print(temperature);
+		Serial.print(" *C ");
+		Serial.println();
+
+		//String temperature = String(temperature);
+		//String humidity = String(humidity);
+
+		// Prepare a JSON payload string
+		String payload = "{";
+		payload += "\"temperature\":"; payload += temperature; payload += ",";
+		payload += "\"humidity\":"; payload += humidity;
+		payload += "}";
+
+		// Send payload
+		char attributes[100];
+		payload.toCharArray(attributes, 100);
+		client.publish(statusTopic[0], attributes);
+		//client.publish("v1/devices/me/telemetry", attributes);
+		Serial.println(attributes);
+	
+		lastSend = millis();
+	}
 }
