@@ -5,8 +5,8 @@
 */
 
 
-#include <DHT_U.h>
-//#include <dht.h>				 // For temperature / humidity sensor
+//#include <DHT_U.h>
+#include <DHT.h>				 // For temperature / humidity sensor
 #include "configuration.h"
 #include <SPI.h>                  // For networking
 #include <Ethernet2.h>             // For networking
@@ -17,25 +17,29 @@
 IPAddress ip(192, 168, 1, 35);           //Static Adress if Enable_Dhcp = false 
 
 //Static Mac Address
-static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE };  // Set if there is no Mac_room
+static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEF };  // Set if there is no Mac_room
 
 #define DHTTYPE DHT22
-#define DHTPIN  2
+#define DHTPIN  A0
 DHT dht(DHTPIN, DHTTYPE);
 unsigned long lastSend = 0;
+int sendDhtInfo = 5000;    // Dht22 will report every X milliseconds.
+
 
 // MQTT Settings //
 IPAddress broker(192, 168, 1, 116);        // MQTT broker
-const char* subscribeTo[5] = { "/home/test1/", "/home/test2/","/home/test3/","/home/test4/","/home/test5/" };
+const char* subscribeTo[] = { "/chambre/sam/lumiere/", "/chambre/sam/lumiere1/",
+							   "/chambre/alex/lumiere/","/chambre/alex/lumiere1/",
+							   "/chambre/master/lumiere/", "/chambre/master/lumiere1/" };
 //SPI = 10,11,12,13		//0,1 rx,tx for usb
-int output_pin[6] = { A0,A1,A2,A3,A4,A5 }; //Relay Pinout
+int output_pin[6] = { 2,A1,A2,A3,A4,A5 }; //Relay Pinout
 int output_state[6] = { 0, 0, 0, 0, 0, 0 };
 const int output_number_pin = 6;
 
 const char* statusTopic[5] = { "/home/test1/set/", "/home/test2/set/","/home/test3/set/","/home/test4/set/","/home/test5/set/" };    // MQTT topic to publish status reports
-int input_pin[8] = { 8,9,14,15,16,17,18,19 }; //SPI = 10,11,12,13		//0,1 rx,tx for usb
-int input_state[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-const int input_number_pin = 8;
+int input_pin[7] = {3, 4, 5, 6, 7, 8, 9 }; //SPI = 10,11,12,13		//0,1 rx,tx for usb
+int input_state[7] = { 0, 0, 0, 0, 0, 0, 0 };
+const int input_number_pin = 7;
 byte lastButtonPressed = 0;
 #define DEBOUNCE_DELAY 50
 
@@ -173,7 +177,7 @@ void setup()
 	char tmpBuf[17];
 	sprintf(tmpBuf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 	Serial.println(tmpBuf);
-
+/*
 	if (Enable_Dhcp == true)
 	{
 		Serial.println("Using Dhcp, Acquiring IP Address ...");
@@ -192,8 +196,7 @@ void setup()
 
 	Serial.println(Ethernet.localIP());
 	Serial.println("=====================================");
-
-
+*/
 #pragma endregion
 
 	enable_and_reset_all_outputs(); //Reset and Set all pin on OUTPUT mode
@@ -202,18 +205,19 @@ void setup()
 	client.setServer(broker, 1883);
 	client.setCallback(callback);
 
-	reconnect();
+	//reconnect();
 
 	}
-void loop() 
-	{
-	if (!client.connected()) 
-	{
-		reconnect();
+void loop()
+{
+	//if (!client.connected())
+	//{
+	//	reconnect();
+	//}
+	if (millis() - lastSend > sendDhtInfo) { // Update and send only after 1 seconds
+		readDHT();
+		lastSend = millis();
 	}
-
-	readDHT();
-
 	client.loop();
 
 	}
@@ -239,72 +243,45 @@ void enable_and_reset_all_inputs()
 	}
 }
 
-void turn_output_off(int output_number)
-{
-	char message[25];
-
-	if (output_number < output_number_pin + 1) 
-	{
-		digitalWrite(output_pin[output_number], LOW);
-		output_state[output_number] = 0;
-		sprintf(message, "Turning OFF output %d", output_number);
-	}
-
-	Serial.println(message);
-}
-void turn_output_on(int output_number)
-{
-	char message[25];
-
-	if (output_number < output_number_pin + 1) 
-	{
-		digitalWrite(output_pin[output_number], HIGH);
-		output_state[output_number] = 1;
-		sprintf(message, "Turning ON output %d", output_number);
-	}
-
-	Serial.println(message);
-}
-
-
 void readDHT()
 {
-	if (millis() - lastSend > 1000)
-	{
-		Serial.println("Reading DHT22");
-		float humidity = dht.readHumidity();
-		float temperature = dht.readTemperature();
+	Serial.println("Collecting temperature data.");
 
-		// Check if any reads failed
-		if (isnan(humidity) || isnan(temperature)) {
-			Serial.println("Failed to read DHT sensor!");
-				return;
-		}
+	// Reading temperature or humidity takes about 250 milliseconds!
+	float h = dht.readHumidity();
+	// Read temperature as Celsius (the default)
+	float t = dht.readTemperature();
 
-		Serial.print("Humidity: ");
-		Serial.print(humidity);
-		Serial.print(" %\t");
-		Serial.print("Temperature: ");
-		Serial.print(temperature);
-		Serial.print(" *C ");
-		Serial.println();
-
-		//String temperature = String(temperature);
-		//String humidity = String(humidity);
-
-		// Prepare a JSON payload string
-		String payload = "{";
-		payload += "\"temperature\":"; payload += temperature; payload += ",";
-		payload += "\"humidity\":"; payload += humidity;
-		payload += "}";
-
-		// Send payload
-		char attributes[100];
-		payload.toCharArray(attributes, 100);
-		client.publish(statusTopic[0], attributes);
-		//client.publish("v1/devices/me/telemetry", attributes);
-		Serial.println(attributes);
-	
-		lastSend = millis();
+	// Check if any reads failed and exit early (to try again).
+	if (isnan(h) || isnan(t)) {
+		Serial.println("Failed to read from DHT sensor!");
+		return;
 	}
+
+	Serial.print("Temperature: ");
+	Serial.print(t);
+	Serial.print(" *C\t ");
+
+	Serial.print("Humidity: ");
+	Serial.print(h);
+	Serial.print(" %");
+	Serial.println();
+
+	String temperature = String(t);
+	String humidity = String(h);
+
+	// Prepare a JSON payload string
+	String payload = "{";
+	payload += "\"temperature\":"; payload += temperature; payload += ",";
+	payload += "\"humidity\":"; payload += humidity;
+	payload += "}";
+
+	// Send payload
+	char attributes[100];
+	payload.toCharArray(attributes, 100);
+	client.publish(statusTopic[0], attributes);
+	Serial.print(statusTopic[0]);
+	Serial.println(attributes);
+	
 }
+
