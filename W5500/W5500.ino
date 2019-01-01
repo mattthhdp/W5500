@@ -33,9 +33,10 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEF };  // Set if there 
 
 #define DHTTYPE DHT22
 #define DHTPIN1  A0
-//#define DHTPIN2 A1
+#define DHTPIN2	 A1
+#define DHTPIN3  A2
 //DHT dht[] = { { DHTPIN1, DHTTYPE },{ DHTPIN2,DHTTYPE} };
-DHT dht[] = { { DHTPIN1, DHTTYPE }};
+DHT dht[] = { { DHTPIN1, DHTTYPE }, { DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE } };
 float humidity[3];
 float temperature[3];
 const int totalDht = 3;
@@ -263,7 +264,9 @@ void enable_and_reset_all_inputs()
 
 void readDHT()
 {
-	Serial.println("Collecting temperature data.");
+	Serial.print("Collecting temperature data from : ");
+	Serial.print(totalDht);
+	Serial.println(" DHT Sensor");
 
 	for (int i = 0; i < totalDht; i++)
 	{
