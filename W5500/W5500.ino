@@ -25,7 +25,7 @@
 #include <PubSubClient.h>         // For MQTT
 
 //Configuration //
-#define Enable_Dhcp               true   // true/false
+#define Enable_Dhcp           true   // true/false
 IPAddress ip(192, 168, 1, 35);           //Static Adress if Enable_Dhcp = false 
 
 //Static Mac Address
@@ -37,9 +37,9 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEF };  // Set if there 
 #define DHTPIN3  A2
 //DHT dht[] = { { DHTPIN1, DHTTYPE },{ DHTPIN2,DHTTYPE} };
 DHT dht[] = { { DHTPIN1, DHTTYPE }, { DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE } };
-float humidity[3];
-float temperature[3];
-const int totalDht = 3;
+float humidity[1];
+float temperature[1];
+const int totalDht = 1;
 unsigned long lastSend = 0;
 int sendDhtInfo = 5000;    // Dht22 will report every X milliseconds.
 const char* dhtPublish[] = { "/chambre/sam/climat/","/chambre/alex/climat/",
@@ -51,7 +51,7 @@ const char* subscribeTo[] = { "/chambre/sam/lumiere/", "/chambre/sam/lumiere1/",
 							   "/chambre/alex/lumiere/","/chambre/alex/lumiere1/",
 							   "/chambre/master/lumiere/", "/chambre/master/lumiere1/" };
 //SPI = 10,11,12,13		//0,1 rx,tx for usb
-int output_pin[6] = { 2,A1,A2,A3,A4,A5 }; //Relay Pinout
+int output_pin[6] = { A0,A1,A2,A3,A4,A5 }; //Relay Pinout
 int output_state[6] = { 0, 0, 0, 0, 0, 0 };
 const int output_number_pin = 6;
 
@@ -68,11 +68,7 @@ byte lastButtonPressed = 0;
 //PubSubClient client(broker, 1883, callback);
 EthernetClient ethclient;
 PubSubClient client(ethclient);
-char messageBuffer[100];
-char topicBuffer[100];
 char clientBuffer[50];
-char command_topic[50];
-
 
 #pragma region Setup
 
@@ -198,7 +194,7 @@ void setup()
 	char tmpBuf[17];
 	sprintf(tmpBuf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 	Serial.println(tmpBuf);
-/*
+
 	if (Enable_Dhcp == true)
 	{
 		Serial.println("Using Dhcp, Acquiring IP Address ...");
@@ -217,7 +213,7 @@ void setup()
 
 	Serial.println(Ethernet.localIP());
 	Serial.println("=====================================");
-*/
+
 #pragma endregion
 
 	enable_and_reset_all_outputs(); //Reset and Set all pin on OUTPUT mode
@@ -229,17 +225,20 @@ void setup()
 	}
 void loop()
 {
-	//if (!client.connected())
-	//{
-	//	reconnect();
-	//}
-	if (millis() - lastSend > sendDhtInfo) { // Update and send only after 1 seconds
+	if (!client.connected())
+	{
+		//reconnect();
+	}
+
+	if (millis() - lastSend > sendDhtInfo)
+	{
 		readDHT();
 		lastSend = millis();
 	}
+
 	client.loop();
 
-	}
+}
 
 /// Set all pint to OUTPUT and state to 0 = OFF
 void enable_and_reset_all_outputs()
@@ -268,10 +267,13 @@ void readDHT()
 	Serial.print(totalDht);
 	Serial.println(" DHT Sensor");
 
+
 	for (int i = 0; i < totalDht; i++)
 	{
 		temperature[i] = dht[i].readTemperature();
 		humidity[i] = dht[i].readHumidity();
+
+		char attributes[100];
 		// Check if any reads failed
 		if (!isnan(humidity[i]) || !isnan(temperature[i]))
 		{
@@ -291,7 +293,6 @@ void readDHT()
 			payload += "}";
 
 			// Send payload
-			char attributes[100];
 			payload.toCharArray(attributes, (payload.length() + 1));
 			client.publish(dhtPublish[i], attributes);
 			Serial.print(dhtPublish[i]);
@@ -302,9 +303,10 @@ void readDHT()
 		{
 			Serial.print("Failed to read from DHT sensor number : ");
 			Serial.println(i);
+			//client.publish(dhtPublish[i], attributes); TODO: Ajouté publish dans FAULT 1
+
 		}
-	}
-	
+	}	
 }
 
 void readButtonPress()
