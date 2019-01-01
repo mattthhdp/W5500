@@ -225,14 +225,6 @@ void setup()
 	client.setServer(broker, 1883);
 	client.setCallback(callback);
 
-	//DHTSetup
-	for (auto& sensor : dht)
-	{
-		sensor.begin();
-	}
-
-	//reconnect();
-
 	}
 void loop()
 {
@@ -289,20 +281,15 @@ void readDHT()
 			Serial.print(" %");
 			Serial.println();
 
-			String temperature = String(analogRead(dht[i].readTemperature));
-			//String humidity = String(humidity[i]);
-			//Serial.println(temperature);
-			//Serial.println(humidity[i]);
-
 			// Prepare a JSON payload string
 			String payload = "{";
-			payload += "\"temperature\":"; payload += temperature; payload += ",";
-			//payload += "\"humidity\":"; payload += humidity;
+			payload += "\"temperature\":"; payload += String(temperature[i]).c_str(); payload += ",";
+			payload += "\"humidity\":"; payload += String(humidity[i]).c_str();
 			payload += "}";
 
 			// Send payload
 			char attributes[100];
-			payload.toCharArray(attributes, 100);
+			payload.toCharArray(attributes, (payload.length() + 1));
 			client.publish(dhtPublish[i], attributes);
 			Serial.print(dhtPublish[i]);
 			Serial.println(attributes);
