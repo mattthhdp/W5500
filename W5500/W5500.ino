@@ -2,6 +2,18 @@
  Name:		W5500.ino
  Created:	12/19/2018 7:14:14 AM
  Author:	mattthhdp
+
+ Use to control my home automation, the board is split into 2 parts. Input and Output.
+ Input have some DHT22 for temperature reading into each room, and some touch button (for the light)
+ Output have relay
+
+ Both do not interact. They Publish/Subscribe to the MQTT broker. 
+ Every Logic is done into Home Assistant.
+
+ Example, the light switch 1 publish to /home/masterbedroom/light/main/
+ and the relay subscribe to				/home/masterbedroom/light/set/
+ In Home Assistant, i can define the rule that i want (in this case, if light/main is set to on 
+ then i can turn light/set/ to on, to turn on the light.
 */
 
 
@@ -20,11 +32,17 @@ IPAddress ip(192, 168, 1, 35);           //Static Adress if Enable_Dhcp = false
 static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEF };  // Set if there is no Mac_room
 
 #define DHTTYPE DHT22
-#define DHTPIN  A0
-DHT dht(DHTPIN, DHTTYPE);
+#define DHTPIN1  A0
+//#define DHTPIN2 A1
+//DHT dht[] = { { DHTPIN1, DHTTYPE },{ DHTPIN2,DHTTYPE} };
+DHT dht[] = { { DHTPIN1, DHTTYPE }};
+float humidity[3];
+float temperature[3];
+const int totalDht = 3;
 unsigned long lastSend = 0;
 int sendDhtInfo = 5000;    // Dht22 will report every X milliseconds.
-
+const char* dhtPublish[] = { "/chambre/sam/climat/","/chambre/alex/climat/",
+							   "/chambre/master/climat/" };
 
 // MQTT Settings //
 IPAddress broker(192, 168, 1, 116);        // MQTT broker
@@ -36,7 +54,9 @@ int output_pin[6] = { 2,A1,A2,A3,A4,A5 }; //Relay Pinout
 int output_state[6] = { 0, 0, 0, 0, 0, 0 };
 const int output_number_pin = 6;
 
-const char* statusTopic[5] = { "/home/test1/set/", "/home/test2/set/","/home/test3/set/","/home/test4/set/","/home/test5/set/" };    // MQTT topic to publish status reports
+const char* statusTopic[5] = { "/home/test1/set/", "/home/test2/set/",
+								"/home/test3/set/","/home/test4/set/",
+								"/home/test5/set/" };    // MQTT topic to publish status reports
 int input_pin[7] = {3, 4, 5, 6, 7, 8, 9 }; //SPI = 10,11,12,13		//0,1 rx,tx for usb
 int input_state[7] = { 0, 0, 0, 0, 0, 0, 0 };
 const int input_number_pin = 7;
@@ -205,6 +225,12 @@ void setup()
 	client.setServer(broker, 1883);
 	client.setCallback(callback);
 
+	//DHTSetup
+	for (auto& sensor : dht)
+	{
+		sensor.begin();
+	}
+
 	//reconnect();
 
 	}
@@ -247,41 +273,51 @@ void readDHT()
 {
 	Serial.println("Collecting temperature data.");
 
-	// Reading temperature or humidity takes about 250 milliseconds!
-	float h = dht.readHumidity();
-	// Read temperature as Celsius (the default)
-	float t = dht.readTemperature();
+	for (int i = 0; i < totalDht; i++)
+	{
+		temperature[i] = dht[i].readTemperature();
+		humidity[i] = dht[i].readHumidity();
+		// Check if any reads failed
+		if (!isnan(humidity[i]) || !isnan(temperature[i]))
+		{
+			Serial.print("Temperature: ");
+			Serial.print(temperature[i]);
+			Serial.print(" *C\t ");
 
-	// Check if any reads failed and exit early (to try again).
-	if (isnan(h) || isnan(t)) {
-		Serial.println("Failed to read from DHT sensor!");
-		return;
+			Serial.print("Humidity: ");
+			Serial.print(humidity[i]);
+			Serial.print(" %");
+			Serial.println();
+
+			String temperature = String(analogRead(dht[i].readTemperature));
+			//String humidity = String(humidity[i]);
+			//Serial.println(temperature);
+			//Serial.println(humidity[i]);
+
+			// Prepare a JSON payload string
+			String payload = "{";
+			payload += "\"temperature\":"; payload += temperature; payload += ",";
+			//payload += "\"humidity\":"; payload += humidity;
+			payload += "}";
+
+			// Send payload
+			char attributes[100];
+			payload.toCharArray(attributes, 100);
+			client.publish(dhtPublish[i], attributes);
+			Serial.print(dhtPublish[i]);
+			Serial.println(attributes);
+		}
+
+		else
+		{
+			Serial.print("Failed to read from DHT sensor number : ");
+			Serial.println(i);
+		}
 	}
-
-	Serial.print("Temperature: ");
-	Serial.print(t);
-	Serial.print(" *C\t ");
-
-	Serial.print("Humidity: ");
-	Serial.print(h);
-	Serial.print(" %");
-	Serial.println();
-
-	String temperature = String(t);
-	String humidity = String(h);
-
-	// Prepare a JSON payload string
-	String payload = "{";
-	payload += "\"temperature\":"; payload += temperature; payload += ",";
-	payload += "\"humidity\":"; payload += humidity;
-	payload += "}";
-
-	// Send payload
-	char attributes[100];
-	payload.toCharArray(attributes, 100);
-	client.publish(statusTopic[0], attributes);
-	Serial.print(statusTopic[0]);
-	Serial.println(attributes);
 	
 }
 
+void readButtonPress()
+{
+
+}
