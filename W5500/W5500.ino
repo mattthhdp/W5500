@@ -186,6 +186,8 @@ void readDHT()
 		// Check if any reads failed
 		if (!isnan(humidity) || !isnan(temperature))
 		{
+			float heatindex = dht[i].computeHeatIndex(temperature, humidity, false);
+
 			Serial.print("Temperature: ");
 			Serial.print(temperature);
 			Serial.print(" *C\t ");
@@ -195,10 +197,16 @@ void readDHT()
 			Serial.print(" %");
 			Serial.println();
 
+			Serial.print("HeatIndex: ");
+			Serial.print(heatindex);
+			Serial.print(" %");
+			Serial.println();
+
 			// Prepare a JSON payload string
 			String payload = "{";
 			payload += "\"temperature\":"; payload += String(temperature).c_str(); payload += ",";
-			payload += "\"humidity\":"; payload += String(humidity).c_str();
+			payload += "\"humidity\":"; payload += String(humidity).c_str(); payload += ",";
+			payload += "\"heatindex\":"; payload += String(heatindex).c_str();
 			payload += "}";
 
 			// Send payload
@@ -210,7 +218,6 @@ void readDHT()
 
 		else
 		{
-
 			Serial.print("Failed to read from DHT sensor number : ");
 			Serial.println(i);
 			client.publish(dhtPublish[i], "error"); //TODO: Ajouté publish dans FAULT 1
