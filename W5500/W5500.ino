@@ -36,7 +36,6 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEF };  // Set if there 
 #define DHTPIN3  A2
 //DHT dht[] = { { DHTPIN1, DHTTYPE },{ DHTPIN2,DHTTYPE} };
 DHT dht[] = { { DHTPIN1, DHTTYPE }, { DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE } };
-const int totalDht = 3;
 unsigned long lastSend = 0;
 const int sendDhtInfo = 5000;    // Dht22 will report every X milliseconds.
 const char* dhtPublish[] = { "/chambre/sam/climat/","/chambre/alex/climat/",
@@ -56,26 +55,27 @@ void reconnect() {
 	while (!client.connected()) {
 		char clientBuffer[50];
 
-		Serial.print("Attempting MQTT connection to : ");
-		Serial.println(broker);
+		//Serial.print("Attempting MQTT connection to : ");
+		//Serial.println(broker);
 		// Attempt to connect
 		String clientString = "Reconnecting Arduino-" + String(Ethernet.localIP());
 		clientString.toCharArray(clientBuffer, clientString.length() + 1);
 		if (client.connect(clientBuffer)) {
-			Serial.println("connected");
+			//Serial.println("connected");
 			clientString.toCharArray(clientBuffer, clientString.length() + 1);
 
 			//Publishing Sensors and Light Switch to//
-			for (int i = 0; i < totalDht; i++)
+			for (int i = 0; i < sizeof(dht) / sizeof(dht[0]); i++)
 			{
 				client.publish(dhtPublish[i],clientBuffer);
-				Serial.print("Publishing to :  ");
-				Serial.println(dhtPublish[i]);
+				//Serial.print("Publishing to :  ");
+				//Serial.println(dhtPublish[i]);
 			}
 			
 		}
 		//If not connected//
 		else {
+			/*
 			Serial.print("failed, rc=");
 			Serial.print(client.state());
 
@@ -101,7 +101,8 @@ void reconnect() {
 				Serial.print(" Impossible Error ... lol"); 
 #pragma endregion
 			Serial.println(" try again in 2 seconds");
-			// Wait 5 seconds before retrying
+			//Wait 2 seconds before retrying
+			*/
 			delay(2000);
 		}
 	}
@@ -113,36 +114,37 @@ void reconnect() {
 void setup() 
 	{
 	Serial.begin(115200);
-	Serial.println();
-	Serial.println("=====================================");
-	Serial.println("Starting up OutputBoard Relay W5500 v1.0");
-	Serial.println("=====================================");
+	
+	//Serial.println();
+	//Serial.println("=====================================");
+	//Serial.println("Starting up OutputBoard Relay W5500 v1.0");
+	//Serial.println("=====================================");
 
 #pragma region Mac and ip Setup
 
-	Serial.print(F("MAC address: "));
+	//Serial.print(F("MAC address: "));
 	char tmpBuf[17];
 	sprintf(tmpBuf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-	Serial.println(tmpBuf);
+	//Serial.println(tmpBuf);
 
 	if (Enable_Dhcp == true)
 	{
-		Serial.println("Using Dhcp, Acquiring IP Address ...");
+		//Serial.println("Using Dhcp, Acquiring IP Address ...");
 		while (!Ethernet.begin(mac))
 		{
-			Serial.println("Error trying to get dynamic ip ... retrying in 2 seconds");
+			//Serial.println("Error trying to get dynamic ip ... retrying in 2 seconds");
 			delay(2000);
 		}
-		Serial.print("Using Dhcp : ");
+		//Serial.print("Using Dhcp : ");
 
 	}
 	else {
-		Serial.print("Using Static IP : ");
+		//Serial.print("Using Static IP : ");
 		Ethernet.begin(mac, ip);  // Use static address defined above
 	}
 
 	Serial.println(Ethernet.localIP());
-	Serial.println("=====================================");
+	//Serial.println("=====================================");
 
 #pragma endregion
 
@@ -169,15 +171,16 @@ void loop()
 
 void readDHT()
 {
+	/*
+	int dhtsize = sizeof(dht) / sizeof(dht[0]);
 	Serial.print("Collecting temperature data from : ");
-	Serial.print(totalDht);
+	Serial.print(dhtsize);
 	Serial.println(" DHT Sensor");
+	*/
 
-
-	for (int i = 0; i < totalDht; i++)
+	for (int i = 0; i < sizeof(dht) / sizeof(dht[0]); i++)
 	{
-		//temperature[i] = dht[i].readTemperature();
-		//humidity[i] = dht[i].readHumidity();
+
 		float temperature = dht[i].readTemperature();
 		float humidity = dht[i].readHumidity();
 
@@ -187,7 +190,7 @@ void readDHT()
 		if (!isnan(humidity) || !isnan(temperature))
 		{
 			float heatindex = dht[i].computeHeatIndex(temperature, humidity, false);
-
+			/*
 			Serial.print("Temperature: ");
 			Serial.print(temperature);
 			Serial.print(" *C\t ");
@@ -199,9 +202,9 @@ void readDHT()
 
 			Serial.print("HeatIndex: ");
 			Serial.print(heatindex);
-			Serial.print(" %");
+			Serial.print(" *C");
 			Serial.println();
-
+			*/
 			// Prepare a JSON payload string
 			String payload = "{";
 			payload += "\"temperature\":"; payload += String(temperature).c_str(); payload += ",";
@@ -212,14 +215,14 @@ void readDHT()
 			// Send payload
 			payload.toCharArray(attributes, (payload.length() + 1));
 			client.publish(dhtPublish[i], attributes);
-			Serial.print(dhtPublish[i]);
-			Serial.println(attributes);
+			//Serial.print(dhtPublish[i]);
+			//Serial.println(attributes);
 		}
 
 		else
 		{
-			Serial.print("Failed to read from DHT sensor number : ");
-			Serial.println(i);
+			//Serial.print("Failed to read from DHT sensor number : ");
+			//Serial.println(i);
 			client.publish(dhtPublish[i], "error"); //TODO: Ajouté publish dans FAULT 1
 		}
 	}	
