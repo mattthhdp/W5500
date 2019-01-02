@@ -37,87 +37,26 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEF };  // Set if there 
 #define DHTPIN3  A2
 //DHT dht[] = { { DHTPIN1, DHTTYPE },{ DHTPIN2,DHTTYPE} };
 DHT dht[] = { { DHTPIN1, DHTTYPE }, { DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE } };
-float humidity[1];
-float temperature[1];
-const int totalDht = 1;
+const int totalDht = 3;
 unsigned long lastSend = 0;
-int sendDhtInfo = 5000;    // Dht22 will report every X milliseconds.
+const int sendDhtInfo = 5000;    // Dht22 will report every X milliseconds.
 const char* dhtPublish[] = { "/chambre/sam/climat/","/chambre/alex/climat/",
 							   "/chambre/master/climat/" };
 
 // MQTT Settings //
 IPAddress broker(192, 168, 1, 116);        // MQTT broker
-const char* subscribeTo[] = { "/chambre/sam/lumiere/", "/chambre/sam/lumiere1/",
-							   "/chambre/alex/lumiere/","/chambre/alex/lumiere1/",
-							   "/chambre/master/lumiere/", "/chambre/master/lumiere1/" };
-//SPI = 10,11,12,13		//0,1 rx,tx for usb
-int output_pin[6] = { A0,A1,A2,A3,A4,A5 }; //Relay Pinout
-int output_state[6] = { 0, 0, 0, 0, 0, 0 };
-const int output_number_pin = 6;
 
-const char* statusTopic[5] = { "/home/test1/set/", "/home/test2/set/",
-								"/home/test3/set/","/home/test4/set/",
-								"/home/test5/set/" };    // MQTT topic to publish status reports
-int input_pin[7] = {3, 4, 5, 6, 7, 8, 9 }; //SPI = 10,11,12,13		//0,1 rx,tx for usb
-int input_state[7] = { 0, 0, 0, 0, 0, 0, 0 };
-const int input_number_pin = 7;
-byte lastButtonPressed = 0;
-#define DEBOUNCE_DELAY 50
 
 // Instantiate MQTT client
 //PubSubClient client(broker, 1883, callback);
 EthernetClient ethclient;
 PubSubClient client(ethclient);
-char clientBuffer[50];
-
-#pragma region Setup
-
-void callback(char* topic, byte* payload, unsigned int length)
-{
-	Serial.print("Message arrived [");
-	Serial.print(topic);
-	Serial.print("] ");
-	for (int i = 0; i < length; i++) {
-		Serial.print((char)payload[i]);
-	}
-	byte output_number = payload[0] - '0';
-
-	Serial.println();
-
-	for ( int i = 0; i < output_number_pin; i++)
-	{
-		int strcomparison = strcmp(topic, subscribeTo[i]);
-		if (strcomparison == 0)
-		{
-			Serial.print("Matched Topic # ");
-			Serial.println(i);
-			if (output_number == 1)// || ((char)payload[0] == '1'))
-			{
-				digitalWrite(output_pin[i], HIGH);
-				output_state[i] = 1;
-				Serial.print("Output: ");
-				Serial.print(output_pin[i]);
-				Serial.print(" State: ");
-				Serial.println(output_state[i]);
-			}
-			if (output_number == 0)
-			{
-				digitalWrite(output_pin[i], LOW);
-				output_state[i] = 0;
-				Serial.print("Output: ");
-				Serial.print(output_pin[i]);
-				Serial.print(" State: ");
-				Serial.println(output_state[i]);
-			}
-		}
-
-	}
-}
-
 
 void reconnect() {
 	// Loop until we're reconnected
 	while (!client.connected()) {
+		char clientBuffer[50];
+
 		Serial.print("Attempting MQTT connection to : ");
 		Serial.println(broker);
 		// Attempt to connect
@@ -128,19 +67,11 @@ void reconnect() {
 			clientString.toCharArray(clientBuffer, clientString.length() + 1);
 
 			//Publishing Sensors and Light Switch to//
-			for (int i = 0; i < 5; i++)
+			for (int i = 0; i < totalDht; i++)
 			{
-				client.publish(statusTopic[i],clientBuffer);
-				Serial.println("Publishing to :");
-				Serial.println(statusTopic[i]);
-			}
-
-			//Subscribe for the relay//
-			for (int i = 0; i < 5; i++)
-			{
-				client.subscribe(subscribeTo[i]);
-				Serial.println("Subscribing to :");
-				Serial.println(subscribeTo[i]);
+				client.publish(dhtPublish[i],clientBuffer);
+				Serial.print("Publishing to :  ");
+				Serial.println(dhtPublish[i]);
 			}
 			
 		}
@@ -216,18 +147,14 @@ void setup()
 
 #pragma endregion
 
-	enable_and_reset_all_outputs(); //Reset and Set all pin on OUTPUT mode
-	enable_and_reset_all_inputs();  //Reset and Set all pin on INPUT mode
-
 	client.setServer(broker, 1883);
-	client.setCallback(callback);
 
 	}
 void loop()
 {
 	if (!client.connected())
 	{
-		//reconnect();
+		reconnect();
 	}
 
 	if (millis() - lastSend > sendDhtInfo)
@@ -240,26 +167,6 @@ void loop()
 
 }
 
-/// Set all pint to OUTPUT and state to 0 = OFF
-void enable_and_reset_all_outputs()
-{
-	for (int i = 0; i < output_number_pin; i++)
-	{
-		pinMode(output_pin[i], OUTPUT);
-		digitalWrite(output_pin[i], output_state[i]);
-		output_state[i] = 0;
-	}
-}
-
-void enable_and_reset_all_inputs()
-{
-	for (int i = 0; i < input_number_pin; i++)
-	{
-		pinMode(input_pin[i], INPUT);
-		digitalWrite(input_pin[i], input_state[i]);
-		input_state[i] = 0;
-	}
-}
 
 void readDHT()
 {
@@ -270,26 +177,29 @@ void readDHT()
 
 	for (int i = 0; i < totalDht; i++)
 	{
-		temperature[i] = dht[i].readTemperature();
-		humidity[i] = dht[i].readHumidity();
+		//temperature[i] = dht[i].readTemperature();
+		//humidity[i] = dht[i].readHumidity();
+		float temperature = dht[i].readTemperature();
+		float humidity = dht[i].readHumidity();
+
 
 		char attributes[100];
 		// Check if any reads failed
-		if (!isnan(humidity[i]) || !isnan(temperature[i]))
+		if (!isnan(humidity) || !isnan(temperature))
 		{
 			Serial.print("Temperature: ");
-			Serial.print(temperature[i]);
+			Serial.print(temperature);
 			Serial.print(" *C\t ");
 
 			Serial.print("Humidity: ");
-			Serial.print(humidity[i]);
+			Serial.print(humidity);
 			Serial.print(" %");
 			Serial.println();
 
 			// Prepare a JSON payload string
 			String payload = "{";
-			payload += "\"temperature\":"; payload += String(temperature[i]).c_str(); payload += ",";
-			payload += "\"humidity\":"; payload += String(humidity[i]).c_str();
+			payload += "\"temperature\":"; payload += String(temperature).c_str(); payload += ",";
+			payload += "\"humidity\":"; payload += String(humidity).c_str();
 			payload += "}";
 
 			// Send payload
@@ -301,15 +211,10 @@ void readDHT()
 
 		else
 		{
+
 			Serial.print("Failed to read from DHT sensor number : ");
 			Serial.println(i);
-			//client.publish(dhtPublish[i], attributes); TODO: Ajouté publish dans FAULT 1
-
+			client.publish(dhtPublish[i], "error"); //TODO: Ajouté publish dans FAULT 1
 		}
 	}	
-}
-
-void readButtonPress()
-{
-
 }
