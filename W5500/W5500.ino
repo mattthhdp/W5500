@@ -19,7 +19,6 @@
 
 //#include <DHT_U.h>
 #include <DHT.h>				 // For temperature / humidity sensor
-#include "configuration.h"
 #include <SPI.h>                  // For networking
 #include <Ethernet2.h>             // For networking
 #include <PubSubClient.h>         // For MQTT
