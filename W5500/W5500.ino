@@ -34,20 +34,67 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEF };  // Set if there 
 #define DHTPIN1  2
 #define DHTPIN2	 3
 #define DHTPIN3  4
-//DHT dht[] = { { DHTPIN1, DHTTYPE },{ DHTPIN2,DHTTYPE} };
-DHT dht[] = { { DHTPIN1, DHTTYPE }, { DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE } };
-unsigned long lastSend = 0;
 const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
+
+unsigned long lastSend = 0;
 const char* dhtPublish[] = { "/chambre/sam/climat/","/chambre/alex/climat/",
 							   "/chambre/master/climat/" };
+
+const int output_pin[6] = { A0,A1,A2,A3,A4,A5 }; //Relay Pinout
+const char* subscribeRelay[] = { "/chambre/sam/lumiere/", "/chambre/sam/lumiere1/",
+								 "/chambre/alex/lumiere/","/chambre/alex/lumiere1/",
+								 "/chambre/master/lumiere/", "/chambre/master/lumiere1/" };
+
 // MQTT Settings //
 IPAddress broker(192, 168, 1, 116);        // MQTT broker
+
+/// Nothing should be modified after this. ///
+DHT dht[] = { { DHTPIN1, DHTTYPE }, { DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE } };
+
+
 
 
 // Instantiate MQTT client
 //PubSubClient client(broker, 1883, callback);
 EthernetClient ethclient;
 PubSubClient client(ethclient);
+
+void callback(char* topic, byte* payload, unsigned int length)
+{
+	Serial.print("Message arrived [");
+	Serial.print(topic);
+	Serial.print("] ");
+	for (int i = 0; i < length; i++) {
+		Serial.print((char)payload[i]);
+	}
+	byte output_number = payload[0] - '0';
+
+	Serial.println();
+
+	for (int i = 0; i < sizeof(subscribeRelay) / sizeof(subscribeRelay[0]); i++)
+	{
+		int strcomparison = strcmp(topic, subscribeRelay[i]);
+		if (strcomparison == 0)
+		{
+
+			Serial.print("Matched Topic # ");
+			Serial.println(i);
+			if (output_number == 1)// || ((char)payload[0] == '1'))
+			{
+				digitalWrite(output_pin[i], HIGH);
+				Serial.print("Output: ");
+				Serial.print(output_pin[i]);
+			}
+			if (output_number == 0)
+			{
+				digitalWrite(output_pin[i], LOW);
+				Serial.print("Output: ");
+				Serial.print(output_pin[i]);
+			}
+		}
+
+	}
+}
 
 void reconnect() {
 	// Loop until we're reconnected
@@ -57,11 +104,11 @@ void reconnect() {
 		//Serial.print("Attempting MQTT connection to : ");
 		//Serial.println(broker);
 		// Attempt to connect
-		String clientString = "Reconnecting Arduino-" + String(Ethernet.localIP());
+		String clientString = "Arduino-" + String(Ethernet.localIP());
 		clientString.toCharArray(clientBuffer, clientString.length() + 1);
 		if (client.connect(clientBuffer)) {
 			//Serial.println("connected");
-			clientString.toCharArray(clientBuffer, clientString.length() + 1);
+			//clientString.toCharArray(clientBuffer, clientString.length() + 1);
 
 			//Publishing Sensors and Light Switch to//
 			for (int i = 0; i < sizeof(dht) / sizeof(dht[0]); i++)
@@ -69,6 +116,13 @@ void reconnect() {
 				client.publish(dhtPublish[i],clientBuffer);
 				//Serial.print("Publishing to :  ");
 				//Serial.println(dhtPublish[i]);
+			}
+
+			for (int i = 0; i < sizeof(subscribeRelay) / sizeof(subscribeRelay[0]); i++)
+			{
+				client.subscribe(subscribeRelay[i]);
+				Serial.println("Subscribing to :");
+				Serial.println(subscribeRelay[i]);
 			}
 			
 		}
@@ -140,7 +194,12 @@ void setup()
 	Serial.println(Ethernet.localIP());
 	//Serial.println("=====================================");
 
+	enable_and_reset_all_outputs(); //Reset and Set all pin on OUTPUT mode
+
+
 	client.setServer(broker, 1883);
+	client.setCallback(callback);
+
 	}
 
 void loop()
@@ -189,32 +248,56 @@ void readDHT()
 		{
 			heatindex = dht[i].computeHeatIndex(temperature, humidity, false);
 		}
-			/*
-			Serial.print("Temperature: ");
-			Serial.print(temperature);
-			Serial.print(" *C\t ");
+		/*
+		Serial.print("Temperature: ");
+		Serial.print(temperature);
+		Serial.print(" *C\t ");
 
-			Serial.print("Humidity: ");
-			Serial.print(humidity);
-			Serial.print(" %");
-			Serial.println();
+		Serial.print("Humidity: ");
+		Serial.print(humidity);
+		Serial.print(" %");
+		Serial.println();
 
-			Serial.print("HeatIndex: ");
-			Serial.print(heatindex);
-			Serial.print(" *C");
-			Serial.println();
-			*/
-			// Prepare a JSON payload string
-			String payload = "{";
-			payload += "\"temperature\":"; payload += String(temperature).c_str(); payload += ",";
-			payload += "\"humidity\":"; payload += String(humidity).c_str(); payload += ",";
-			payload += "\"heatindex\":"; payload += String(heatindex).c_str();
-			payload += "}";
+		Serial.print("HeatIndex: ");
+		Serial.print(heatindex);
+		Serial.print(" *C");
+		Serial.println();
+		*/
+		// Prepare a JSON payload string
+		String payload = "{";
+		payload += "\"temperature\":"; payload += String(temperature).c_str(); payload += ",";
+		payload += "\"humidity\":"; payload += String(humidity).c_str(); payload += ",";
+		payload += "\"heatindex\":"; payload += String(heatindex).c_str();
+		payload += "}";
 
-			// Send payload
-			payload.toCharArray(attributes, (payload.length() + 1));
-			client.publish(dhtPublish[i], attributes);
-			//Serial.print(dhtPublish[i]);
-			//Serial.println(attributes);
+		// Send payload
+		payload.toCharArray(attributes, (payload.length() + 1));
+		client.publish(dhtPublish[i], attributes);
+		//Serial.print(dhtPublish[i]);
+		//Serial.println(attributes);
+
+		///TO BE REMOVE FOR HASS
+		if (dht[i].readTemperature() > 22)
+		{
+			client.publish(subscribeRelay[i], "0");
+		}
+		else if(dht[i].readTemperature() < 15)
+		{
+			client.publish(subscribeRelay[i], "1");
+
+		}
+		else
+		{
+
+		}
 	}	
+}
+
+void enable_and_reset_all_outputs()
+{
+	for (int i = 0; i < sizeof(subscribeRelay) / sizeof(subscribeRelay[0]); i++)
+	{
+		pinMode(output_pin[i], OUTPUT);
+		digitalWrite(output_pin[i], LOW);
+	}
 }
