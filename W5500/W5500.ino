@@ -31,16 +31,15 @@ IPAddress ip(192, 168, 1, 35);           //Static Adress if Enable_Dhcp = false
 static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEF };  // Set if there is no Mac_room
 
 #define DHTTYPE DHT22
-#define DHTPIN1  A0
-#define DHTPIN2	 A1
-#define DHTPIN3  A2
+#define DHTPIN1  2
+#define DHTPIN2	 3
+#define DHTPIN3  4
 //DHT dht[] = { { DHTPIN1, DHTTYPE },{ DHTPIN2,DHTTYPE} };
 DHT dht[] = { { DHTPIN1, DHTTYPE }, { DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE } };
 unsigned long lastSend = 0;
-const int sendDhtInfo = 5000;    // Dht22 will report every X milliseconds.
+const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 const char* dhtPublish[] = { "/chambre/sam/climat/","/chambre/alex/climat/",
 							   "/chambre/master/climat/" };
-
 // MQTT Settings //
 IPAddress broker(192, 168, 1, 116);        // MQTT broker
 
@@ -74,7 +73,7 @@ void reconnect() {
 			
 		}
 		//If not connected//
-		else {
+		//else {
 			/*
 			Serial.print("failed, rc=");
 			Serial.print(client.state());
@@ -103,13 +102,10 @@ void reconnect() {
 			Serial.println(" try again in 2 seconds");
 			//Wait 2 seconds before retrying
 			*/
-			delay(2000);
-		}
+			//delay(2000);
+		//}
 	}
 }
-
-#pragma endregion
-
 
 void setup() 
 	{
@@ -120,11 +116,9 @@ void setup()
 	//Serial.println("Starting up OutputBoard Relay W5500 v1.0");
 	//Serial.println("=====================================");
 
-#pragma region Mac and ip Setup
-
 	//Serial.print(F("MAC address: "));
-	char tmpBuf[17];
-	sprintf(tmpBuf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	//char tmpBuf[17];
+	//sprintf(tmpBuf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 	//Serial.println(tmpBuf);
 
 	if (Enable_Dhcp == true)
@@ -133,7 +127,7 @@ void setup()
 		while (!Ethernet.begin(mac))
 		{
 			//Serial.println("Error trying to get dynamic ip ... retrying in 2 seconds");
-			delay(2000);
+			//delay(2000);
 		}
 		//Serial.print("Using Dhcp : ");
 
@@ -146,11 +140,9 @@ void setup()
 	Serial.println(Ethernet.localIP());
 	//Serial.println("=====================================");
 
-#pragma endregion
-
 	client.setServer(broker, 1883);
-
 	}
+
 void loop()
 {
 	if (!client.connected())
@@ -168,7 +160,6 @@ void loop()
 
 }
 
-
 void readDHT()
 {
 	/*
@@ -183,13 +174,21 @@ void readDHT()
 
 		float temperature = dht[i].readTemperature();
 		float humidity = dht[i].readHumidity();
-
+		float heatindex;
 
 		char attributes[100];
 		// Check if any reads failed
-		if (!isnan(humidity) || !isnan(temperature))
+		if (isnan(humidity) || isnan(temperature)) // set value to -1 so we publish an error
 		{
-			float heatindex = dht[i].computeHeatIndex(temperature, humidity, false);
+			temperature = -1;
+			humidity = -1;
+			heatindex = -1;
+		}
+
+		else
+		{
+			heatindex = dht[i].computeHeatIndex(temperature, humidity, false);
+		}
 			/*
 			Serial.print("Temperature: ");
 			Serial.print(temperature);
@@ -217,13 +216,5 @@ void readDHT()
 			client.publish(dhtPublish[i], attributes);
 			//Serial.print(dhtPublish[i]);
 			//Serial.println(attributes);
-		}
-
-		else
-		{
-			//Serial.print("Failed to read from DHT sensor number : ");
-			//Serial.println(i);
-			client.publish(dhtPublish[i], "error"); //TODO: Ajouté publish dans FAULT 1
-		}
 	}	
 }
