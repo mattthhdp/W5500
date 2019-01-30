@@ -62,12 +62,14 @@ PubSubClient client(ethclient);
 
 void callback(char* topic, byte* payload, unsigned int length)
 {
-	//Serial.print("Message arrived [");
-	//Serial.print(topic);
-	//Serial.print("] ");
-	//for (int i = 0; i < length; i++) {
-//		Serial.print((char)payload[i]);
-	//}
+	/*Serial.print("Message arrived [");
+	Serial.print(topic);
+	Serial.print("] ");
+	for (int i = 0; i < length; i++) 
+		{
+		Serial.print((char)payload[i]);
+		}
+	*/
 	byte output_number = payload[0] - '0';
 
 	//Serial.println();
@@ -288,7 +290,7 @@ void readDHT()
 			Serial.print("Relay ");
 			Serial.println(" Low");
 		}
-		else if (temperature < 18 && temperature > 5)
+		else if (temperature < 18.0 && temperature > 5)
 		{
 			digitalWrite(output_pin[i], HIGH);
 			Serial.print("Relay ");
