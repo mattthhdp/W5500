@@ -25,7 +25,7 @@
 
 //Configuration //
 #define Enable_Dhcp           true   // true/false
-IPAddress ip(192, 168, 1, 35);           //Static Adress if Enable_Dhcp = false 
+IPAddress ip(192, 168, 1, 30);           //Static Adress if Enable_Dhcp = false 
 
 //Static Mac Address
 static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEF };  // Set if there is no Mac_room
@@ -42,6 +42,11 @@ const char* dhtPublish[] = { "/chambre/sam/climat/","/chambre/alex/climat/",
 
 const int output_pin[6] = { A0,A1,A2,A3,A4,A5 }; //Relay Pinout
 const char* subscribeRelay[] = { "/chambre/sam/lumiere/", "/chambre/sam/lumiere1/",
+								 "/chambre/alex/lumiere/","/chambre/alex/lumiere1/",
+								 "/chambre/master/lumiere/", "/chambre/master/lumiere1/" };
+
+const int intput_pin[6] = { A0,A1,A2,A3,A4,A5 }; //Input Pinout
+const char* inputPublish[] = { "/chambre/sam/lumiere/", "/chambre/sam/lumiere1/",
 								 "/chambre/alex/lumiere/","/chambre/alex/lumiere1/",
 								 "/chambre/master/lumiere/", "/chambre/master/lumiere1/" };
 
@@ -221,8 +226,42 @@ void loop()
 		lastSend = millis();
 	}
 
+	scan_buttons()
 	client.loop();
 
+}
+
+void scan_buttons()
+{
+	if (millis() - last_activity_time > debounce_timeout)
+	{
+		byte this_button_state = BUTTONUP;
+		for (int i = 0; i < 8; i++)
+		{
+			this_button_state = digitalRead(button_pin[i]);
+			//Serial.print(this_button_state);
+			if (this_button_state == BUTTONDOWN && button_state[i] == BUTTONUP)
+			{
+				// We've detected a keypress
+				last_activity_time = millis();
+				screen_line_4 = "Button press";
+				refresh_screen();
+				char button[2];
+				sprintf(button, "%d", i);
+				button_state[i] = BUTTONDOWN;
+				byte output_number = i + 1;
+				if (output_state[i] == 0)
+				{
+					turn_output_on(output_number);
+				}
+				else {
+					turn_output_off(output_number);
+				}
+			}
+
+			button_state[i] = this_button_state;
+		}
+	}
 }
 
 void readDHT()
