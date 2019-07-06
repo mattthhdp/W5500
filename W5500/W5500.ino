@@ -31,27 +31,31 @@ IPAddress ip(192, 168, 1, 30);           //Static Adress if Enable_Dhcp = false
 static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEF };  // Set if there is no Mac_room
 
 #define DHTTYPE DHT22
-#define DHTPIN1  2
-#define DHTPIN2	 3
-#define DHTPIN3  4
+#define DHTPIN1  A0 //Chambre Samuel
+#define DHTPIN2	 A1	//Chambre Alexis
+#define DHTPIN3  A2 //Chambre Maitre
+#define DHTPIN3  A3 //Salon
+#define DHTPIN3  A4 //Corridor
+#define DHTPIN3  A5 //Cuisine
+
 const int sendDhtInfo = 10000;    // Dht22 will report every X milliseconds.
-
 unsigned long lastSend = 0;
-const char* dhtPublish[] = { "/chambre/sam/climat/","/chambre/alex/climat/",
-							   "/chambre/master/climat/" };
+const char* dhtPublish[] = { "chambre/samuel/climat/","chambre/alexis/climat/",
+							   "chambre/master/climat/", "salon/haut/climat/"
+								"corridor/climat/","/cuisine/climat/" };
 
-const int output_pin[6] = { A0,A1,A2,A3,A4,A5 }; //Relay Pinout
-const char* subscribeRelay[] = { "/chambre/sam/lumiere/", "/chambre/sam/lumiere1/",
-								 "/chambre/alex/lumiere/","/chambre/alex/lumiere1/",
-								 "/chambre/master/lumiere/", "/chambre/master/lumiere1/" };
+const int output_pin[6] = { D8,D9,D10,D11,D12,D13 }; //Relay Pinout turn on/off light
+const char* subscribeRelay[] = { "chambre/samuel/lumiere/main/status/", "chambre/samuel/lumiere/closet/status/",
+								 "chambre/alexis/lumiere/main/status/","chambre/alexis/lumiere/closet/status/",
+								 "chambre/master/lumiere/main/status/", "chambre/master/lumiere/closet/status/" };
 
-const int intput_pin[6] = { A0,A1,A2,A3,A4,A5 }; //Input Pinout
-const char* inputPublish[] = { "/chambre/sam/lumiere/", "/chambre/sam/lumiere1/",
-								 "/chambre/alex/lumiere/","/chambre/alex/lumiere1/",
-								 "/chambre/master/lumiere/", "/chambre/master/lumiere1/" };
+const int intput_pin[6] = { D2,D3,D4,D5,D6,D7 }; //Input Pinout light button
+const char* inputPublish[] = { "chambre/samuel/lumiere/main/set/", "chambre/samuel/lumiere/closet/set/",
+							   "chambre/alexis/lumiere/main/set/","chambre/alexis/lumiere/closet/set/",
+							   "chambre/master/lumiere/main/set/", "chambre/master/lumiere/closet/set/" };
 
 // MQTT Settings //
-IPAddress broker(192, 168, 1, 35);        // MQTT broker
+IPAddress broker(192, 168, 1, 30);        // MQTT broker
 //#define mqttUser "USERNAME"					//Username for MQTT Broker
 //#define mqttPassword "PASS"				//Password for MQTT Broker
 /// Nothing should be modified after this. ///
