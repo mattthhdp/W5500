@@ -44,12 +44,12 @@ const char* dhtPublish[] = { "chambre/samuel/climat/","chambre/alexis/climat/",
 							   "chambre/master/climat/", "salon/haut/climat/"
 								"corridor/climat/","/cuisine/climat/" };
 
-const int output_pin[6] = { D8,D9,D10,D11,D12,D13 }; //Relay Pinout turn on/off light
+const int output_pin[6] = { 8,9,10,11,12,13 }; //Relay Pinout turn on/off light
 const char* subscribeRelay[] = { "chambre/samuel/lumiere/main/status/", "chambre/samuel/lumiere/closet/status/",
 								 "chambre/alexis/lumiere/main/status/","chambre/alexis/lumiere/closet/status/",
 								 "chambre/master/lumiere/main/status/", "chambre/master/lumiere/closet/status/" };
 
-const int intput_pin[6] = { D2,D3,D4,D5,D6,D7 }; //Input Pinout light button
+const int intput_pin[6] = { 2,3,4,5,6,7 }; //Input Pinout light button
 const char* inputPublish[] = { "chambre/samuel/lumiere/main/set/", "chambre/samuel/lumiere/closet/set/",
 							   "chambre/alexis/lumiere/main/set/","chambre/alexis/lumiere/closet/set/",
 							   "chambre/master/lumiere/main/set/", "chambre/master/lumiere/closet/set/" };
