@@ -58,8 +58,8 @@ const char* inputPublish[] = { "chambre/samuel/lumiere/main/set/", "chambre/samu
 IPAddress broker(192, 168, 1, 30);        // MQTT broker
 //#define mqttUser "USERNAME"					//Username for MQTT Broker
 //#define mqttPassword "PASS"				//Password for MQTT Broker
-/// Nothing should be modified after this. ///
-DHT dht[] = { { DHTPIN1, DHTTYPE }, { DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE } };
+
+DHT dht[] = { { DHTPIN1, DHTTYPE }, { DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE }, { DHTPIN4, DHTTYPE }, { DHTPIN5, DHTTYPE }, { DHTPIN6, DHTTYPE } };
 
 
 
@@ -325,29 +325,6 @@ void readDHT()
 		//Serial.print(dhtPublish[i]);
 		//Serial.println(attributes);
 
-		///////////
-		///TO BE DELETED
-		if (temperature > 19)
-		{
-			digitalWrite(output_pin[i], LOW);
-			Serial.print("Relay ");
-			Serial.println(" Low");
-		}
-		else if (temperature < 18.0 && temperature > 5)
-		{
-			digitalWrite(output_pin[i], HIGH);
-			Serial.print("Relay ");
-			Serial.println(" High");
-		}
-		else
-		{
-			digitalWrite(output_pin[i], LOW);
-			Serial.print("Relay ");
-			Serial.println(" Low");
-			Serial.println("!!! Sensor Defect !!!");
-			//remove me
-
-		}
 	}
 }
 
