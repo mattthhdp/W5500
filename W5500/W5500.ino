@@ -1,11 +1,11 @@
-#include <DHT.h>                  // For temperature / humidity sensor
+#include "DHT.h"                 // For temperature / humidity sensor
 #include <SPI.h>                  // For networking
 #include <Ethernet.h>             // For networking
 #include <PubSubClient.h>         // For MQTT
 
 //Configuration //
 #define Enable_Dhcp  true                 // true/false
-IPAddress ip(192, 168, 1, 105);           //Static Adress if Enable_Dhcp = false 
+IPAddress ip(192, 168, 1, 105);           //Static Adress if Enable_Dhcp = false
 
 //Static Mac Address
 static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xBB };  // Set if there is no Mac_room
@@ -20,19 +20,22 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xBB };  // Set if there 
 
 const int sendDhtInfo = 2000;    // Dht22 will report every X milliseconds.
 unsigned long lastSend = 0;
-const char* dhtPublish[] = { "chambre/samuel/climat/","chambre/alexis/climat/",
-                 "chambre/master/climat/", "salon/haut/climat/",
-                "corridor/climat/","cuisine/climat/" };
+const char* dhtPublish[] = { "chambre/samuel/climat/", "chambre/alexis/climat/",
+                             "chambre/master/climat/", "salon/haut/climat/",
+                             "corridor/climat/", "cuisine/climat/"
+                           };
 
-const int output_pin[6] = { 8,9,10,11,12,13 }; //Relay Pinout turn on/off light
+const int output_pin[6] = { 8, 9, 10, 11, 12, 13 }; //Relay Pinout turn on/off light
 const char* subscribeRelay[] = { "chambre/samuel/lumiere/main/status/", "chambre/samuel/lumiere/closet/status/",
-                 "chambre/alexis/lumiere/main/status/","chambre/alexis/lumiere/closet/status/",
-                 "chambre/master/lumiere/main/status/", "chambre/master/lumiere/closet/status/" };
+                                 "chambre/alexis/lumiere/main/status/", "chambre/alexis/lumiere/closet/status/",
+                                 "chambre/master/lumiere/main/status/", "chambre/master/lumiere/closet/status/"
+                               };
 
-const int intput_pin[6] = { 2,3,4,5,6,7 }; //Input Pinout light button
+const int intput_pin[6] = { 2, 3, 4, 5, 6, 7 }; //Input Pinout light button
 const char* inputPublish[] = { "chambre/samuel/lumiere/main/set/", "chambre/samuel/lumiere/closet/set/",
-                 "chambre/alexis/lumiere/main/set/","chambre/alexis/lumiere/closet/set/",
-                 "chambre/master/lumiere/main/set/", "chambre/master/lumiere/closet/set/" };
+                               "chambre/alexis/lumiere/main/set/", "chambre/alexis/lumiere/closet/set/",
+                               "chambre/master/lumiere/main/set/", "chambre/master/lumiere/closet/set/"
+                             };
 
 // MQTT Settings //
 const char* broker = "192.168.1.240";        // MQTT broker
@@ -64,7 +67,7 @@ void callback(char* topic, byte* payload, unsigned int length)
       if (output_number == 0)
       {
         digitalWrite(output_pin[i], LOW);
-        }
+      }
     }
 
   }
@@ -80,23 +83,23 @@ void reconnect() {
 
       for (int i = 0; i < sizeof(dhtPublish) / sizeof(dhtPublish[0]); i++)
       {
-        client.publish(dhtPublish[i],clientBuffer);
+        client.publish(dhtPublish[i], clientBuffer);
       }
 
       for (int i = 0; i < sizeof(subscribeRelay) / sizeof(subscribeRelay[0]); i++)
       {
         client.subscribe(subscribeRelay[i]);
-      }   
+      }
     }
     else {
-      
+
       Serial.println("failed, rc=");
       Serial.println(client.state());
+    }
   }
 }
-}
-void setup() 
-  {
+void setup()
+{
   Serial.begin(115200);
   Serial.println("Starting up OutputBoard Relay W5500 v1.0");
   Serial.println("====");
@@ -118,8 +121,11 @@ void setup()
 
   client.setServer(broker, 1883);
   client.setCallback(callback);
-
+  for (int i = 0; i < sizeof(dhtPublish) / sizeof(dhtPublish[0]); i++)
+  {
+  dht[i].begin();
   }
+}
 
 void loop()
 {
@@ -139,7 +145,7 @@ void loop()
 
 void readDHT()
 {
-  
+
   for (int i = 0; i < sizeof(dhtPublish) / sizeof(dhtPublish[0]); i++)
   {
 
@@ -148,15 +154,15 @@ void readDHT()
     float heatindex;
 
     char attributes[100];
-Serial.print(i);
-Serial.print("-Temp sensor: ");
-Serial.print(temperature);
-Serial.println("");
+    Serial.print(i);
+    Serial.print("-Temp sensor: ");
+    Serial.print(temperature);
+    Serial.println("");
 
 
-    
+
     heatindex = dht[i].computeHeatIndex(temperature, humidity, false);
-    
+
 
     String payload = "{";
     payload += "\"temperature\":"; payload += String(temperature).c_str(); payload += ",";
