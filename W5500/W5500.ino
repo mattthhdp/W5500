@@ -38,7 +38,8 @@ const char* inputPublish[] = { "chambre/samuel/lumiere/main/set/", "chambre/samu
                              };
 
 // MQTT Settings //
-const char* broker = "192.168.1.240";        // MQTT broker
+//const char* broker = "192.168.1.240";        // MQTT broker
+const char* broker = "ubuntu.jaune.lan";        // MQTT broker
 //#define mqttUser "USERNAME"         //Username for MQTT Broker
 //#define mqttPassword "PASS"       //Password for MQTT Broker
 
@@ -57,9 +58,6 @@ void callback(char* topic, byte* payload, unsigned int length)
     int strcomparison = strcmp(topic, subscribeRelay[i]);
     if (strcomparison == 0)
     {
-
-      Serial.print("Matched Topic # ");
-      Serial.println(i);
       if (output_number == 1)// || ((char)payload[0] == '1'))
       {
         digitalWrite(output_pin[i], HIGH);
@@ -153,16 +151,16 @@ void readDHT()
     float humidity = dht[i].readHumidity();
     float heatindex;
 
-    char attributes[100];
-    Serial.print(i);
-    Serial.print("-Temp sensor: ");
-    Serial.print(temperature);
-    Serial.println("");
-
-
-
-    heatindex = dht[i].computeHeatIndex(temperature, humidity, false);
-
+    if(isnan(humidity) || isnan(temperature))
+    {
+      temperature = -100;
+      humidity = -100;
+      heatindex = -100;
+    }
+    else
+    {
+      float heatindex = dht[i].computeHeatIndex(temperature,humidity,false);
+    }
 
     String payload = "{";
     payload += "\"temperature\":"; payload += String(temperature).c_str(); payload += ",";
@@ -171,6 +169,7 @@ void readDHT()
     payload += "}";
 
     // Send payload
+    char attributes[100];
     payload.toCharArray(attributes, (payload.length() + 1));
     client.publish(dhtPublish[i], attributes);
 
