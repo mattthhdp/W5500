@@ -8,7 +8,7 @@
 IPAddress ip(192, 168, 1, 105);           //Static Adress if Enable_Dhcp = false
 
 //Static Mac Address
-static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xBB };  // Set if there is no Mac_room
+static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xAA };  // Set if there is no Mac_room
 
 #define DHTTYPE DHT22
 #define DHTPIN0  A0 //Chambre Samuel
@@ -18,7 +18,7 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xBB };  // Set if there 
 #define DHTPIN4  A4 //Corridor
 #define DHTPIN5  A5 //Cuisine
 
-const int sendDhtInfo = 2000;    // Dht22 will report every X milliseconds.
+const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 unsigned long lastSend = 0;
 const char* dhtPublish[] = { "chambre/samuel/climat/", "chambre/alexis/climat/",
                              "chambre/master/climat/", "salon/haut/climat/",
@@ -38,7 +38,7 @@ const char* inputPublish[] = { "chambre/samuel/lumiere/main/set/", "chambre/samu
                              };
 
 // MQTT Settings //
-const char* broker = "192.168.1.240";        // MQTT broker
+const char* broker = "ubuntu.jaune.lan";        // MQTT broker
 //#define mqttUser "USERNAME"         //Username for MQTT Broker
 //#define mqttPassword "PASS"       //Password for MQTT Broker
 
@@ -50,6 +50,7 @@ PubSubClient client(ethclient);
 void callback(char* topic, byte* payload, unsigned int length)
 {
   Serial.println("Callback ");
+  Serial.println(topic);
   byte output_number = payload[0] - '0';
 
   for (int i = 0; i < sizeof(subscribeRelay) / sizeof(subscribeRelay[0]); i++)
@@ -57,16 +58,19 @@ void callback(char* topic, byte* payload, unsigned int length)
     int strcomparison = strcmp(topic, subscribeRelay[i]);
     if (strcomparison == 0)
     {
-
-      Serial.print("Matched Topic # ");
-      Serial.println(i);
       if (output_number == 1)// || ((char)payload[0] == '1'))
       {
         digitalWrite(output_pin[i], HIGH);
+        Serial.print("pin: ");
+        Serial.println(output_pin[i]);
+        Serial.println(" HIGH");
       }
       if (output_number == 0)
       {
         digitalWrite(output_pin[i], LOW);
+        Serial.println("pin: ");
+        Serial.println(output_pin[i]);
+        Serial.println(" LOW");
       }
     }
 
@@ -154,16 +158,19 @@ void readDHT()
     float heatindex;
 
     char attributes[100];
-    Serial.print(i);
-    Serial.print("-Temp sensor: ");
-    Serial.print(temperature);
-    Serial.println("");
 
+    if (isnan(humidity) || isnan(temperature)) // set value to -1 so we publish an error
+    {
+      temperature = 500;
+      humidity = 500;
+      heatindex = 500;
+    }
 
-
-    heatindex = dht[i].computeHeatIndex(temperature, humidity, false);
-
-
+    else
+    {
+      float heatindex = dht[i].computeHeatIndex(temperature, humidity, false);
+    }
+    
     String payload = "{";
     payload += "\"temperature\":"; payload += String(temperature).c_str(); payload += ",";
     payload += "\"humidity\":"; payload += String(humidity).c_str(); payload += ",";
