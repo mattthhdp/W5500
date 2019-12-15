@@ -12,7 +12,7 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xBB };  // Set if there 
 #define DHTTYPE DHT22
 #define DHTPIN0  A0 //Chambre Samuel
 #define DHTPIN1  A1 //Main
-#define DHTPIN2  A2 //Closet
+//#define DHTPIN2  A2 //Closet
 //#define DHTPIN3  A3 //Salon
 //#define DHTPIN4  A4 //Corridor
 //#define DHTPIN5  A5 //Cuisine
@@ -20,8 +20,7 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xBB };  // Set if there 
 
 const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 unsigned long lastSend = 0;
-const char* dhtPublish[] = { "chambre/master/climat/main/", "chambre/master/climat/closet/",
-                             "chambre/alexis/climat/main/" };
+const char* dhtPublish[] = { "chambre/master/climat/main/", "chambre/master/climat/closet/" };
 
 const int output_pin[3] = { 2, 3, 4 }; //Relay Pinout turn on/off light
 const char* subscribeRelay[] = { "chambre/master/lumiere/main/status/", "chambre/master/lumiere/closet/status/",
@@ -84,18 +83,10 @@ void reconnect() {
         client.subscribe(subscribeRelay[i]);
       }
     }
-    else {
-      ////Failed////
-      //Serial.println("failed, rc=");
-      //Serial.println(client.state());
-    }
   }
 }
 void setup()
 {
-  Serial.begin(115200);
-  Serial.println("Starting up OutputBoard Relay W5500 v1.0");
-
   if (Enable_Dhcp == true)
   {
     while (!Ethernet.begin(mac))
@@ -107,7 +98,6 @@ void setup()
     Ethernet.begin(mac, ip);  // Use static address defined above
   }
 
-  Serial.println(Ethernet.localIP());
   enable_and_reset_all_outputs(); //Reset and Set all pin on OUTPUT mode
 
   client.setServer(broker, 1883);
