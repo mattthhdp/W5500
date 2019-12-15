@@ -1,7 +1,11 @@
-#include "DHT.h"                 // For temperature / humidity sensor
-#include <SPI.h>                  // For networking
-#include <Ethernet.h>             // For networking
-#include <PubSubClient.h>         // For MQTT
+#include <DHT.h>
+#include <PubSubClient.h>
+#include <Ethernet.h>
+
+//#include "DHT.h"                 // For temperature / humidity sensor
+//#include <SPI.h>                  // For networking
+//#include <Ethernet.h>             // For networking
+//#include <PubSubClient.h>         // For MQTT
 
 //Configuration //
 #define Enable_Dhcp  true                 // true/false
@@ -18,7 +22,7 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xBB };  // Set if there 
 #define DHTPIN4  A4 //Corridor
 #define DHTPIN5  A5 //Cuisine
 
-const int sendDhtInfo = 2000;    // Dht22 will report every X milliseconds.
+const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 unsigned long lastSend = 0;
 const char* dhtPublish[] = { "chambre/samuel/climat/", "chambre/alexis/climat/",
                              "chambre/master/climat/", "salon/haut/climat/",
@@ -50,7 +54,14 @@ PubSubClient client(ethclient);
 
 void callback(char* topic, byte* payload, unsigned int length)
 {
-  Serial.println("Callback ");
+  	Serial.print("Message arrived [");
+	Serial.print(topic);
+	Serial.print("] ");
+	for (int i = 0; i < length; i++) 
+		{
+		Serial.print((char)payload[i]);
+		}
+	
   byte output_number = payload[0] - '0';
 
   for (int i = 0; i < sizeof(subscribeRelay) / sizeof(subscribeRelay[0]); i++)
@@ -87,12 +98,14 @@ void reconnect() {
       for (int i = 0; i < sizeof(subscribeRelay) / sizeof(subscribeRelay[0]); i++)
       {
         client.subscribe(subscribeRelay[i]);
+        Serial.println("Subscribe ");
+        Serial.println(subscribeRelay[i]);
       }
     }
     else {
-
-      Serial.println("failed, rc=");
-      Serial.println(client.state());
+      ////Failed////
+      //Serial.println("failed, rc=");
+      //Serial.println(client.state());
     }
   }
 }
@@ -100,8 +113,6 @@ void setup()
 {
   Serial.begin(115200);
   Serial.println("Starting up OutputBoard Relay W5500 v1.0");
-  Serial.println("====");
-
 
   if (Enable_Dhcp == true)
   {
@@ -159,7 +170,7 @@ void readDHT()
     }
     else
     {
-      float heatindex = dht[i].computeHeatIndex(temperature,humidity,false);
+      heatindex = dht[i].computeHeatIndex(temperature,humidity,false);
     }
 
     String payload = "{";
