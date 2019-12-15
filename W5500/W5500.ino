@@ -2,11 +2,6 @@
 #include <PubSubClient.h>
 #include <Ethernet.h>
 
-//#include "DHT.h"                 // For temperature / humidity sensor
-//#include <SPI.h>                  // For networking
-//#include <Ethernet.h>             // For networking
-//#include <PubSubClient.h>         // For MQTT
-
 //Configuration //
 #define Enable_Dhcp  true                 // true/false
 IPAddress ip(192, 168, 1, 105);           //Static Adress if Enable_Dhcp = false
@@ -16,30 +11,26 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xBB };  // Set if there 
 
 #define DHTTYPE DHT22
 #define DHTPIN0  A0 //Chambre Samuel
-#define DHTPIN1  A1 //Chambre Alexis
-#define DHTPIN2  A2 //Chambre Maitre
-#define DHTPIN3  A3 //Salon
-#define DHTPIN4  A4 //Corridor
-#define DHTPIN5  A5 //Cuisine
+#define DHTPIN1  A1 //Main
+#define DHTPIN2  A2 //Closet
+//#define DHTPIN3  A3 //Salon
+//#define DHTPIN4  A4 //Corridor
+//#define DHTPIN5  A5 //Cuisine
+//pinout A0-A5  2-9
 
 const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 unsigned long lastSend = 0;
-const char* dhtPublish[] = { "chambre/samuel/climat/", "chambre/alexis/climat/",
-                             "chambre/master/climat/", "salon/haut/climat/",
-                             "corridor/climat/", "cuisine/climat/"
-                           };
+const char* dhtPublish[] = { "chambre/master/climat/main/", "chambre/master/climat/closet/",
+                             "chambre/alexis/climat/main/" };
 
-const int output_pin[6] = { 8, 9, 10, 11, 12, 13 }; //Relay Pinout turn on/off light
-const char* subscribeRelay[] = { "chambre/samuel/lumiere/main/status/", "chambre/samuel/lumiere/closet/status/",
-                                 "chambre/alexis/lumiere/main/status/", "chambre/alexis/lumiere/closet/status/",
-                                 "chambre/master/lumiere/main/status/", "chambre/master/lumiere/closet/status/"
-                               };
+const int output_pin[3] = { 2, 3, 4 }; //Relay Pinout turn on/off light
+const char* subscribeRelay[] = { "chambre/master/lumiere/main/status/", "chambre/master/lumiere/closet/status/",
+                                 "chambre/master/heat/main/status/"}; //, "chambre/alexis/lumiere/closet/status/",
+                                // "chambre/master/lumiere/main/status/", "chambre/master/lumiere/closet/status/"
+                               //};
 
-const int intput_pin[6] = { 2, 3, 4, 5, 6, 7 }; //Input Pinout light button
-const char* inputPublish[] = { "chambre/samuel/lumiere/main/set/", "chambre/samuel/lumiere/closet/set/",
-                               "chambre/alexis/lumiere/main/set/", "chambre/alexis/lumiere/closet/set/",
-                               "chambre/master/lumiere/main/set/", "chambre/master/lumiere/closet/set/"
-                             };
+const int intput_pin[2] = { 5, 6 }; //Input Pinout light button
+const char* inputPublish[] = { "chambre/master/lumiere/main/set/", "chambre/master/lumiere/closet/set/" };
 
 // MQTT Settings //
 //const char* broker = "192.168.1.240";        // MQTT broker
@@ -47,21 +38,14 @@ const char* broker = "ubuntu.jaune.lan";        // MQTT broker
 //#define mqttUser "USERNAME"         //Username for MQTT Broker
 //#define mqttPassword "PASS"       //Password for MQTT Broker
 
-DHT dht[] = { { DHTPIN0, DHTTYPE }, { DHTPIN1, DHTTYPE }, { DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE }, { DHTPIN4, DHTTYPE }, { DHTPIN5, DHTTYPE } };
+DHT dht[] = { { DHTPIN0, DHTTYPE }, { DHTPIN1, DHTTYPE }, }; //{ DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE }, { DHTPIN4, DHTTYPE }, { DHTPIN5, DHTTYPE } };
 
 EthernetClient ethclient;
 PubSubClient client(ethclient);
 
 void callback(char* topic, byte* payload, unsigned int length)
 {
-  	Serial.print("Message arrived [");
-	Serial.print(topic);
-	Serial.print("] ");
-	for (int i = 0; i < length; i++) 
-		{
-		Serial.print((char)payload[i]);
-		}
-	
+
   byte output_number = payload[0] - '0';
 
   for (int i = 0; i < sizeof(subscribeRelay) / sizeof(subscribeRelay[0]); i++)
@@ -98,8 +82,6 @@ void reconnect() {
       for (int i = 0; i < sizeof(subscribeRelay) / sizeof(subscribeRelay[0]); i++)
       {
         client.subscribe(subscribeRelay[i]);
-        Serial.println("Subscribe ");
-        Serial.println(subscribeRelay[i]);
       }
     }
     else {
