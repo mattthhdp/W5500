@@ -158,9 +158,9 @@ void readDHT()
 
     if(isnan(humidity) || isnan(temperature))
     {
-      temperature = -100;
-      humidity = -100;
-      heatindex = -100;
+      temperature = 100;
+      humidity = 100;
+      heatindex = 100;
     }
     else
     {
