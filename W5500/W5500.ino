@@ -21,7 +21,6 @@ OneButton button2(A5, false); // chambre maitre closet
 //#define DHTPIN4  A4 //Corridor
 //#define DHTPIN5  A5 //Cuisine
 //pinout A0-A5  2-9
-
 const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 unsigned long lastSend = 0;
 const char* dhtPublish[] = { "chambre/master/climat/main/", "chambre/master/climat/closet/" };
@@ -77,7 +76,7 @@ void reconnect() {
   while (!client.connected()) {
     char clientBuffer[40];
 
-    String clientString = "Arduino-" + String(Ethernet.localIP()[2]) + "." + String(Ethernet.localIP()[3]);
+    String clientString = "ip" + String(Ethernet.localIP()[2]) + "." + String(Ethernet.localIP()[3]);
     clientString.toCharArray(clientBuffer, clientString.length() + 1);
     if (client.connect(clientBuffer)) {
 
@@ -158,9 +157,9 @@ void readDHT()
 
     if(isnan(humidity) || isnan(temperature))
     {
-      temperature = 100;
-      humidity = 100;
-      heatindex = 100;
+      temperature = 100.0f;
+      humidity = 100.0f;
+      heatindex = 100.0f;
     }
     else
     {
@@ -207,19 +206,6 @@ void longPressStart1()
   client.publish("chambre/master/lumiere/main/long/", "1");
 } 
 
-/*
-// This function will be called often, while the button1 is pressed for a long time.
-void longPress1() 
-{
-  Serial.println("Button 1 longPress...");
-}
-
-// This function will be called once, when the button1 is released after beeing pressed for a long time.
-void longPressStop1() 
-{
-  Serial.println("Button 1 longPress stop");
-}
-*/
 
 ////Boutton1
 void click2() 
@@ -236,17 +222,3 @@ void longPressStart2()
 {
   client.publish("chambre/master/lumiere/closet/long/", "1");
 } 
-
-/*
-// This function will be called often, while the button1 is pressed for a long time.
-void longPress1() 
-{
-  Serial.println("Button 1 longPress...");
-}
-
-// This function will be called once, when the button1 is released after beeing pressed for a long time.
-void longPressStop1() 
-{
-  Serial.println("Button 1 longPress stop");
-}
-*/
