@@ -9,13 +9,12 @@
 IPAddress ip(192, 168, 1, 105);           //Static Adress if Enable_Dhcp = false
 
 //Static Mac Address
-static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xBB };  // Set if there is no Mac_room
-
+static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xB1 };  // Master = BB, Cuisine =B1
 #define DHTTYPE DHT22
-#define DHTPIN0  A0 //Chambre maitre main
-#define DHTPIN1  A1 //chambre maitre closet
-OneButton button1(A4, false); //chambre maitre main
-OneButton button2(A5, false); // chambre maitre closet
+#define DHTPIN0  A0 //Cuisine main
+#define DHTPIN1  A1 //cuisine Lavabo
+OneButton button1(A4, false); //Cuisine main
+OneButton button2(A5, false); // Cuisine Lavabo
 //#define DHTPIN2  A2 //Closet
 //#define DHTPIN3  A3 //Salon
 //#define DHTPIN4  A4 //Corridor
@@ -23,20 +22,20 @@ OneButton button2(A5, false); // chambre maitre closet
 //pinout A0-A5  2-9
 const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 unsigned long lastSend = 0;
-const char* dhtPublish[] = { "chambre/master/climat/main/", "chambre/master/climat/closet/" };
+const char* dhtPublish[] = { "chambre/cuisine/climat/main/", "chambre/cuisine/climat/lavabo/" };
 
 const int output_pin[3] = { 2, 3, 4 }; //Relay Pinout turn on/off light et chauffage
 //2=lumiere main
 //3=lumiere garde-robe
 //4=chauffage
-const char* subscribeRelay[] = { "chambre/master/lumiere/main/status/", "chambre/master/lumiere/closet/status/",
-                                 "chambre/master/heat/main/status/"}; //, "chambre/alexis/lumiere/closet/status/",
+const char* subscribeRelay[] = { "chambre/cuisine/lumiere/main/status/", "chambre/cuisine/lumiere/lavabo/status/",
+                                 "chambre/cuisine/heat/main/status/"}; //, "chambre/alexis/lumiere/closet/status/",
                                 // "chambre/master/lumiere/main/status/", "chambre/master/lumiere/closet/status/"
                                //};
 
 //const int intput_pin[2] = { 5, 6 }; //Input Pinout light button
-const char* inputPublish[] = { "chambre/master/lumiere/main/simple/", "chambre/master/lumiere/main/double/", "chambre/master/lumiere/main/long/",
-                               "chambre/master/lumiere/closet/simple/","chambre/master/lumiere/closet/double/","chambre/master/lumiere/closet/long/" };
+const char* inputPublish[] = { "chambre/cuisine/lumiere/main/simple/", "chambre/cuisine/lumiere/main/double/", "chambre/cuisine/lumiere/main/long/",
+                               "chambre/cuisine/lumiere/lavabo/simple/","chambre/cuisine/lumiere/lavabo/double/","chambre/cuisine/lumiere/lavabo/long/" };
 
 // MQTT Settings //
 //const char* broker = "192.168.1.240";        // MQTT broker
@@ -193,32 +192,32 @@ void enable_and_reset_all_outputs()
 ////Boutton1
 void click1() 
 {
-  client.publish("chambre/master/lumiere/main/simple/", "1");
+  client.publish("chambre/cuisine/lumiere/main/simple/", "1");
 } 
 
 void doubleclick1() 
 {
-  client.publish("chambre/master/lumiere/main/double/", "1");
+  client.publish("chambre/cuisine/lumiere/main/double/", "1");
 } 
 
 void longPressStart1() 
 {
-  client.publish("chambre/master/lumiere/main/long/", "1");
+  client.publish("chambre/cuisine/lumiere/main/long/", "1");
 } 
 
 
 ////Boutton1
 void click2() 
 {
-  client.publish("chambre/master/lumiere/closet/simple/", "1");
+  client.publish("chambre/cuisine/lumiere/lavabo/simple/", "1");
 } 
 
 void doubleclick2() 
 {
-  client.publish("chambre/master/lumiere/closet/double/", "1");
+  client.publish("chambre/cuisine/lumiere/lavabo/double/", "1");
 } 
 
 void longPressStart2() 
 {
-  client.publish("chambre/master/lumiere/closet/long/", "1");
+  client.publish("chambre/cuisine/lumiere/lavabo/long/", "1");
 } 
