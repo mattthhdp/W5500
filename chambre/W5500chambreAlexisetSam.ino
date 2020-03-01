@@ -38,7 +38,6 @@ const char* inputPublish[] = { "chambre/alexis/lumiere/main/simple/", "chambre/a
                                "chambre/alexis/lumiere/closet/simple/","chambre/alexis/lumiere/closet/double/","chambre/alexis/lumiere/closet/long/" };
 
 // MQTT Settings //
-//const char* broker = "192.168.1.240";        // MQTT broker
 const char* broker = "ubuntu.jaune.lan";        // MQTT broker
 //#define mqttUser "USERNAME"         //Username for MQTT Broker
 //#define mqttPassword "PASS"       //Password for MQTT Broker
@@ -50,7 +49,8 @@ PubSubClient client(ethclient);
 
 void callback(char* topic, byte* payload, unsigned int length)
 {
-
+  Serial.println("Callback");
+  Serial.println(topic);
   byte output_number = payload[0] - '0';
 
   for (int i = 0; i < sizeof(subscribeRelay) / sizeof(subscribeRelay[0]); i++)
@@ -77,7 +77,8 @@ void reconnect() {
 
     String clientString = "ip : " + String(Ethernet.localIP()[2]) + "." + String(Ethernet.localIP()[3]);
     clientString.toCharArray(clientBuffer, clientString.length() + 1);
-    if (client.connect(clientBuffer)) {
+    if (client.connect(clientBuffer)) 
+    {
 
       for (int i = 0; i < sizeof(dhtPublish) / sizeof(dhtPublish[0]); i++)
       {
@@ -110,9 +111,9 @@ void setup()
   client.setServer(broker, 1883);
   client.setCallback(callback);
   for (int i = 0; i < sizeof(dhtPublish) / sizeof(dhtPublish[0]); i++)
-  {
-  dht[i].begin();
-  }
+    {
+      dht[i].begin();
+    }
 
   button1.attachClick(click1);
   button1.attachDoubleClick(doubleclick1);
@@ -141,6 +142,7 @@ void loop()
     lastSend = millis();
   }
   button1.tick();
+  button2.tick();
   client.loop();
 }
 
@@ -153,7 +155,6 @@ void readDHT()
     float temperature = dht[i].readTemperature();
     float humidity = dht[i].readHumidity();
     float heatindex;
-
     if(isnan(humidity) || isnan(temperature))
     {
       temperature = 100.0f;
@@ -189,7 +190,7 @@ void enable_and_reset_all_outputs()
 }
 
 
-////Boutton1
+//Boutton1
 void click1() 
 {
   client.publish("chambre/alexis/lumiere/main/simple/", "1");
