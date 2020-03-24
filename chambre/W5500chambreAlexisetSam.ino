@@ -38,7 +38,7 @@ const char* inputPublish[] = { "chambre/alexis/lumiere/main/simple/", "chambre/a
                                "chambre/alexis/lumiere/closet/simple/","chambre/alexis/lumiere/closet/double/","chambre/alexis/lumiere/closet/long/" };
 
 // MQTT Settings //
-const char* broker = "ubuntu.jaune.lan";        // MQTT broker
+const char* broker = "ubuntu.jaune.lan"; // MQTT broker
 //#define mqttUser "USERNAME"         //Username for MQTT Broker
 //#define mqttPassword "PASS"       //Password for MQTT Broker
 
