@@ -16,8 +16,8 @@ static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xA2 };  // Samuel/Alexis
 #define DHTPIN2  A2 //Samuel main
 #define DHTPIN3  A3 //Samuel Closet
 OneButton button1(A4, false); //Alexis main
-OneButton button2(A5, false); // Alexis closet
-OneButton button3(2, false); //Samuel main
+OneButton button2(2, false); // Alexis closet
+OneButton button3(A5, false); //Samuel main
 OneButton button4(3, false); // Samuel closet
 
 //pinout A0-A5  2-9
