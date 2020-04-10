@@ -29,9 +29,9 @@ const int output_pin[6] = { 4, 5, 6, 7, 8, 9 }; //Relay Pinout turn on/off light
 //4=lumiere main Alexis
 //5=lumiere garde-robe Alexis
 //6=chauffage Alexis
-//7=lumiere main Alexis
-//8=lumiere garde-robe Alexis
-//9=chauffage Alexis
+//7=lumiere main Samuel
+//8=lumiere garde-robe Samuel
+//9=chauffage Samuel
 const char* subscribeRelay[] = { "chambre/alexis/lumiere/main/status/", "chambre/alexis/lumiere/closet/status/",
                                  "chambre/alexis/heat/main/status/", "chambre/samuel/lumiere/closet/status/",
                                  "chambre/samuel/lumiere/main/status/", "chambre/samuel/lumiere/closet/status/"
