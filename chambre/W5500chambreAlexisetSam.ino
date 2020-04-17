@@ -5,42 +5,42 @@
 #include <Ethernet.h>
 
 //Configuration //
-#define Enable_Dhcp  true                 // true/false
-IPAddress ip(192, 168, 1, 105);           //Static Adress if Enable_Dhcp = false
+//#define Enable_Dhcp  true                 // true/false
+//IPAddress ip(192, 168, 1, 105);           //Static Adress if Enable_Dhcp = false
 
 //Static Mac Address
-static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xA2 };  // Samuel/Alexis
+static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xA2 };  // s/a
 #define DHTTYPE DHT22
-#define DHTPIN0  A0 //Alexis main
-#define DHTPIN1  A1 //Alexis closet
-#define DHTPIN2  A2 //Samuel main
-#define DHTPIN3  A3 //Samuel Closet
-OneButton button1(A4, false); //Alexis main
-OneButton button2(2, false); // Alexis closet
-OneButton button3(A5, false); //Samuel main
-OneButton button4(3, false); // Samuel closet
+#define DHTPIN0  A0 //a main
+#define DHTPIN1  A1 //a closet
+#define DHTPIN2  A2 //s main
+#define DHTPIN3  A3 //s Closet
+OneButton button1(A4, false); //Alexis main light switch
+OneButton button2(2, false); //Alexis closet light switch
+OneButton button3(A5, false); //Samuel main light switch
+OneButton button4(3, false); //Samuel closet light switch
 
 //pinout A0-A5  2-9
 const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 unsigned long lastSend = 0;
-const char* dhtPublish[] = { "chambre/alexis/climat/main/", "chambre/alexis/climat/closet/", "chambre/samuel/climat/main/", "chambre/samuel/climat/closet/" };
+const char* dhtPublish[] = { "c/a/climat/main/", "c/a/climat/closet/", "c/s/climat/main/", "c/s/climat/closet/" };
 
 const int output_pin[6] = { 4, 5, 6, 7, 8, 9 }; //Relay Pinout turn on/off light et chauffage
-//4=lumiere main Alexis
-//5=lumiere garde-robe Alexis
-//6=chauffage Alexis
-//7=lumiere main Samuel
-//8=lumiere garde-robe Samuel
-//9=chauffage Samuel
-const char* subscribeRelay[] = { "chambre/alexis/lumiere/main/status/", "chambre/alexis/lumiere/closet/status/",
-                                 "chambre/alexis/heat/main/status/", "chambre/samuel/lumiere/closet/status/",
-                                 "chambre/samuel/lumiere/main/status/", "chambre/samuel/lumiere/closet/status/"
+//4=l main a
+//5=l garde-robe a
+//6=chauffage a
+//7=l main s
+//8=l garde-robe s
+//9=chauffage s
+const char* subscribeRelay[] = { "c/a/l/main/status/", "c/a/l/closet/status/",
+                                 "c/a/heat/main/status/", "c/s/l/closet/status/",
+                                 "c/s/l/main/status/", "c/s/l/closet/status/"
                                };
 
-const char* inputPublish[] = { "chambre/alexis/lumiere/main/simple/", "chambre/alexis/lumiere/main/double/", "chambre/alexis/lumiere/main/long/",
-                               "chambre/alexis/lumiere/closet/simple/","chambre/alexis/lumiere/closet/double/","chambre/alexis/lumiere/closet/long/",
-                               "chambre/samuel/lumiere/main/simple/", "chambre/samuel/lumiere/main/double/", "chambre/samuel/lumiere/main/long/",
-                               "chambre/samuel/lumiere/closet/simple/","chambre/samuel/lumiere/closet/double/","chambre/samuel/lumiere/closet/long/" 
+const char* inputPublish[] = { "c/a/l/main/simple/", "c/a/l/main/double/", "c/a/l/main/long/",
+                               "c/a/l/closet/simple/","c/a/l/closet/double/","c/a/l/closet/long/",
+                               "c/s/l/main/simple/", "c/s/l/main/double/", "c/s/l/main/long/",
+                               "c/s/l/closet/simple/","c/s/l/closet/double/","c/s/l/closet/long/" 
                                };
 
 // MQTT Settings //
@@ -86,10 +86,12 @@ void reconnect() {
     if (client.connect(clientBuffer)) 
     {
 
-      for (int i = 0; i < sizeof(dhtPublish) / sizeof(dhtPublish[0]); i++)
-      {
-        client.publish(dhtPublish[i], clientBuffer);
-      }
+      client.publish("arduino/c/ip/", clientBuffer);
+
+      // for (int i = 0; i < sizeof(dhtPublish) / sizeof(dhtPublish[0]); i++)
+      // {
+      //   client.publish(dhtPublish[i], clientBuffer);
+      // }
 
       for (int i = 0; i < sizeof(subscribeRelay) / sizeof(subscribeRelay[0]); i++)
       {
@@ -101,16 +103,16 @@ void reconnect() {
 void setup()
 {
   Serial.begin(115200);
-  if (Enable_Dhcp == true)
-  {
+  // if (Enable_Dhcp == true)
+  // {
     while (!Ethernet.begin(mac))
     {
 
     }
-  }
-  else {
-    Ethernet.begin(mac, ip);  // Use static address defined above
-  }
+  //}
+  // else {
+  //   Ethernet.begin(mac, ip);  // Use static address defined above
+  // }
 
   enable_and_reset_all_outputs(); //Reset and Set all pin on OUTPUT mode
 
@@ -132,13 +134,13 @@ void setup()
   button2.attachDoubleClick(doubleclick2);
   button2.attachLongPressStart(longPressStart2);
 
-  button3.attachClick(click2);
-  button3.attachDoubleClick(doubleclick2);
-  button3.attachLongPressStart(longPressStart2);
+   button3.attachClick(click3);
+   button3.attachDoubleClick(doubleclick3);
+   button3.attachLongPressStart(longPressStart3);
 
-  button4.attachClick(click2);
-  button4.attachDoubleClick(doubleclick2);
-  button4.attachLongPressStart(longPressStart2);
+   button4.attachClick(click4);
+   button4.attachDoubleClick(doubleclick4);
+   button4.attachLongPressStart(longPressStart4);
 
 }
 
@@ -154,6 +156,7 @@ void loop()
     readDHT();
     lastSend = millis();
   }
+  
   button1.tick();
   button2.tick();
   button3.tick();
@@ -164,10 +167,8 @@ void loop()
 
 void readDHT()
 {
-
   for (int i = 0; i < sizeof(dhtPublish) / sizeof(dhtPublish[0]); i++)
   {
-
     float temperature = dht[i].readTemperature();
     float humidity = dht[i].readHumidity();
     float heatindex;
@@ -179,7 +180,7 @@ void readDHT()
     }
     else
     {
-      heatindex = dht[i].computeHeatIndex(temperature,humidity,false);
+     heatindex = dht[i].computeHeatIndex(temperature,humidity,false);
     }
 
     String payload = "{";
@@ -209,56 +210,56 @@ void enable_and_reset_all_outputs()
 //Boutton1
 void click1() 
 {
-  client.publish("chambre/alexis/lumiere/main/simple/", "1");
+  client.publish("c/a/l/main/simple/", "1");
 } 
 void doubleclick1() 
 {
-  client.publish("chambre/alexis/lumiere/main/double/", "1");
+  client.publish("c/a/l/main/double/", "1");
 } 
 void longPressStart1() 
 {
-  client.publish("chambre/alexis/lumiere/main/long/", "1");
+  client.publish("c/a/l/main/long/", "1");
 } 
 
 
 //Boutton2
 void click2() 
 {
-  client.publish("chambre/alexis/lumiere/closet/simple/", "1");
+  client.publish("c/a/l/closet/simple/", "1");
 } 
 void doubleclick2() 
 {
-  client.publish("chambre/alexis/lumiere/closet/double/", "1");
+  client.publish("c/a/l/closet/double/", "1");
 } 
 void longPressStart2() 
 {
-  client.publish("chambre/alexis/lumiere/closet/long/", "1");
+  client.publish("c/a/l/closet/long/", "1");
 } 
 
 //Buton3
 void click3() 
 {
-  client.publish("chambre/alexis/lumiere/closet/simple/", "1");
+  client.publish("c/a/l/closet/simple/", "1");
 } 
 void doubleclick3() 
 {
-  client.publish("chambre/alexis/lumiere/closet/double/", "1");
+  client.publish("c/a/l/closet/double/", "1");
 } 
 void longPressStart3() 
 {
-  client.publish("chambre/alexis/lumiere/closet/long/", "1");
+  client.publish("c/a/l/closet/long/", "1");
 } 
 
 //buton4
 void click4() 
 {
-  client.publish("chambre/alexis/lumiere/closet/simple/", "1");
+  client.publish("c/a/l/closet/simple/", "1");
 } 
 void doubleclick4() 
 {
-  client.publish("chambre/alexis/lumiere/closet/double/", "1");
+  client.publish("c/a/l/closet/double/", "1");
 } 
 void longPressStart4() 
 {
-  client.publish("chambre/alexis/lumiere/closet/long/", "1");
+  client.publish("c/a/l/closet/long/", "1");
 } 
