@@ -9,21 +9,21 @@
 //IPAddress ip(192, 168, 1, 105);           //Static Adress if Enable_Dhcp = false
 
 //Static Mac Address
-static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xA2 };  // s/a
+static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xA1 };  // masterbedroom
 #define DHTTYPE DHT22
-#define DHTPIN0  A0 //alexis main dht22
-#define DHTPIN1  A1 //alexis closet dht22
-#define DHTPIN2  A2 //samuel main dht22
-#define DHTPIN3  A3 //samuel Closet dht22
-OneButton button1(A4, false); //Alexis main light switch
-OneButton button2(2, false); //Alexis closet light switch
-OneButton button3(A5, false); //Samuel main light switch
-OneButton button4(3, false); //Samuel closet light switch
+#define DHTPIN0  A0 //masterbedroom main dht22
+#define DHTPIN1  A1 //masterbedroom closet dht22
+#define DHTPIN2  A2 //passage main
+#define DHTPIN3  A3 //passage proche garage
+OneButton button1(A4, false); //masterbedroom main light switch
+OneButton button2(2, false); //masterbedroom closet light switch
+OneButton button3(A5, false); //passage main light switch
+OneButton button4(3, false); //passage closet light switch
 
 //pinout A0-A5  2-9
 const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 unsigned long lastSend = 0;
-const char* dhtPublish[] = { "c/a/climat/main/", "c/a/climat/closet/", "c/s/climat/main/", "c/s/climat/closet/" };
+const char* dhtPublish[] = { "c/mas/climat/main/", "c/mas/climat/closet/", "c/pas/climat/main/", "c/pas/climat/closet/" };
 
 const int output_pin[6] = { 4, 5, 6, 7, 8, 9 }; //Relay Pinout turn on/off light et chauffage
 //4=l main a
@@ -32,15 +32,15 @@ const int output_pin[6] = { 4, 5, 6, 7, 8, 9 }; //Relay Pinout turn on/off light
 //7=l main s
 //8=l garde-robe s
 //9=chauffage s
-const char* subscribeRelay[] = { "c/a/l/main/status/", "c/a/l/closet/status/",
-                                 "c/a/heat/main/status/", "c/s/l/closet/status/",
-                                 "c/s/l/main/status/", "c/s/l/closet/status/"
+const char* subscribeRelay[] = { "c/mapapas/l/main/status/", "c/mapapapas/l/closet/status/",
+                                 "c/a/heat/main/status/", "c/papapas/l/closet/status/",
+                                 "c/papapas/l/main/status/", "c/papapas/l/closet/status/"
                                };
 
-const char* inputPublish[] = { "c/a/l/main/simple/", "c/a/l/main/double/", "c/a/l/main/long/",
-                               "c/a/l/closet/simple/","c/a/l/closet/double/","c/a/l/closet/long/",
-                               "c/s/l/main/simple/", "c/s/l/main/double/", "c/s/l/main/long/",
-                               "c/s/l/closet/simple/","c/s/l/closet/double/","c/s/l/closet/long/" 
+const char* inputPublish[] = { "c/mapapas/l/main/simple/", "c/mapapas/l/main/double/", "c/mapapas/l/main/long/",
+                               "c/mapapas/l/closet/simple/","c/mapapas/l/closet/double/","c/mapapas/l/closet/long/",
+                               "c/papas/l/main/simple/", "c/papas/l/main/double/", "c/papas/l/main/long/",
+                               "c/papas/l/closet/simple/","c/papas/l/closet/double/","c/papas/l/closet/long/" 
                                };
 
 // MQTT Settings //
@@ -210,56 +210,56 @@ void enable_and_reset_all_outputs()
 //Boutton1
 void click1() 
 {
-  client.publish("c/a/l/main/simple/", "1");
+  client.publish("c/mapapas/l/main/simple/", "1");
 } 
 void doubleclick1() 
 {
-  client.publish("c/a/l/main/double/", "1");
+  client.publish("c/mapapas/l/main/double/", "1");
 } 
 void longPressStart1() 
 {
-  client.publish("c/a/l/main/long/", "1");
+  client.publish("c/mapapas/l/main/long/", "1");
 } 
 
 
 //Boutton2
 void click2() 
 {
-  client.publish("c/a/l/closet/simple/", "1");
+  client.publish("c/mapapas/l/closet/simple/", "1");
 } 
 void doubleclick2() 
 {
-  client.publish("c/a/l/closet/double/", "1");
+  client.publish("c/mapapas/l/closet/double/", "1");
 } 
 void longPressStart2() 
 {
-  client.publish("c/a/l/closet/long/", "1");
+  client.publish("c/mapapas/l/closet/long/", "1");
 } 
 
 //Buton3
 void click3() 
 {
-  client.publish("c/a/l/closet/simple/", "1");
+  client.publish("c/mapapas/l/closet/simple/", "1");
 } 
 void doubleclick3() 
 {
-  client.publish("c/a/l/closet/double/", "1");
+  client.publish("c/mapapas/l/closet/double/", "1");
 } 
 void longPressStart3() 
 {
-  client.publish("c/a/l/closet/long/", "1");
+  client.publish("c/mapapas/l/closet/long/", "1");
 } 
 
 //buton4
 void click4() 
 {
-  client.publish("c/a/l/closet/simple/", "1");
+  client.publish("c/mapapas/l/closet/simple/", "1");
 } 
 void doubleclick4() 
 {
-  client.publish("c/a/l/closet/double/", "1");
+  client.publish("c/mapapas/l/closet/double/", "1");
 } 
 void longPressStart4() 
 {
-  client.publish("c/a/l/closet/long/", "1");
+  client.publish("c/mapapas/l/closet/long/", "1");
 } 
