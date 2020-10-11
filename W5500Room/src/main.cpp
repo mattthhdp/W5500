@@ -34,7 +34,7 @@ const int output_pin[6] = { 4, 5, 6, 7, 8, 9 }; //Relay Pinout turn on/off light
 //9=chauffage s
 #define prefix "jaune"
 
-const char subscribeRelay[][6] PROGMEM = { l1, l2, l3, l4, l5, l6 } ;
+//const char subscribeRelay[][6] PROGMEM = { l1, l2, l3, l4, l5, l6 } ;
 
 
 #define autodiscovery "jaune"
