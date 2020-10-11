@@ -32,10 +32,13 @@ const int output_pin[6] = { 4, 5, 6, 7, 8, 9 }; //Relay Pinout turn on/off light
 //7=l main s
 //8=l garde-robe s
 //9=chauffage s
-const char* subscribeRelay[] = { "c/mapapas/l/main/status/", "c/mapapapas/l/closet/status/",
-                                 "c/a/heat/main/status/", "c/papapas/l/closet/status/",
-                                 "c/papapas/l/main/status/", "c/papapas/l/closet/status/"
-                               };
+#define prefix "jaune"
+
+const char subscribeRelay[][6] PROGMEM = { l1, l2, l3, l4, l5, l6 } ;
+
+
+#define autodiscovery "jaune"
+#define location ""
 
 const char* inputPublish[] = { "c/mapapas/l/main/simple/", "c/mapapas/l/main/double/", "c/mapapas/l/main/long/",
                                "c/mapapas/l/closet/simple/","c/mapapas/l/closet/double/","c/mapapas/l/closet/long/",
