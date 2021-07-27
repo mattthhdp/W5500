@@ -47,7 +47,13 @@ const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 #define DOUBLE "double"
 #define LONG "long"
 #define UN "1"
+#define ZERO "0"
+#define UPTIME "uptime"
+//Topic du Board pour adresse IP
+const char BOARD_TOPIC0[] PROGMEM = TOPIC SLASH NAMEA;
+const char BOARD_TOPIC1[] PROGMEM = TOPIC SLASH NAMEA UPTIME;
 
+const char* const BOARD_TOPIC[] PROGMEM = { BOARD_TOPIC0, BOARD_TOPIC1 };
 // En Theorie rien en dessous de ca devrait etre touche //
 
 unsigned long lastSend = 0; 
@@ -109,12 +115,15 @@ void callback(char* topic, byte* payload, unsigned int length)
     if (strcomparison == 0)
     {
       if (output_number == 1)// || ((char)payload[0] == '1'))
+      ConvertAndSend (&SUBSCRIBERELAY [i], UN);
       {
         digitalWrite(output_pin[i], HIGH);
       }
       if (output_number == 0)
       {
         digitalWrite(output_pin[i], LOW);
+        ConvertAndSend (&SUBSCRIBERELAY [i], ZERO);
+
       }
     }
 
@@ -132,9 +141,9 @@ void reconnect()
     {
 
       //todo mettre le publish en progmem et utiliser la commande
-      Serial.println(clientBuffer);
-      client.publish("chambre/test/ip/", clientBuffer);
-      //ConvertAndSend (&DHT_TOPIC [i], clientBuffer);
+      //Serial.println(clientBuffer);
+      //client.publish("chambre/test/ip/", clientBuffer);
+      ConvertAndSend (&BOARD_TOPIC [0], clientBuffer);
 
       for (int i = 0; i < sizeof(SUBSCRIBERELAY) / sizeof(SUBSCRIBERELAY[0]); i++)
       {
@@ -157,7 +166,7 @@ void setup()
   client.setServer(broker, 1883);
   client.setCallback(callback);
 
-  Serial.println(F("DHT Begin"));
+  //Serial.println(F("DHT Begin"));
   for (int i = 0; i < sizeof(DHT_TOPIC) / sizeof(DHT_TOPIC[0]); i++)
     {
       dht[i].begin();
@@ -189,7 +198,7 @@ void loop()
 {
   if (!client.connected())
   {
-   Serial.println(F("reconnect"));
+   //Serial.println(F("reconnect"));
    reconnect();
   }
 
@@ -267,24 +276,24 @@ void click1()
 {
   ConvertAndSend (&INPUTPUBLISH[0], UN);
 
-  int sensorValue = digitalRead(0);
-  Serial.println(sensorValue, DEC);
+  //int sensorValue = digitalRead(0);
+  //Serial.println(sensorValue, DEC);
 
 } 
 void doubleclick1() 
 {
 ConvertAndSend (&INPUTPUBLISH[1], UN);
 
- int sensorValue = digitalRead(1);
-  Serial.println(sensorValue, DEC);
+ //int sensorValue = digitalRead(1);
+ //Serial.println(sensorValue, DEC);
 
 } 
 void longPressStart1() 
 {
 ConvertAndSend (&INPUTPUBLISH[2], UN);
 
- int sensorValue = digitalRead(2);
-  Serial.println(sensorValue, DEC);
+//  int sensorValue = digitalRead(2);
+//   Serial.println(sensorValue, DEC);
 
 } 
 
@@ -371,10 +380,10 @@ void print_Uptime(){
     payload += "\"Second\":"; payload += (Second < 10 ? "0" : "") + String(Second);
     payload += "}";
 
-    client.publish("chambre/test/uptime/", payload.c_str());
-    Serial.print(payload);
-    Serial.println();
+    //client.publish("chambre/test/uptime/", payload.c_str());
+    //Serial.print(payload);
+    //Serial.println();
 
 //todo Mettre le publish en progmem et utilise la commande
-    //ConvertAndSend (&DHT_TOPIC [i], payload);
+    ConvertAndSend (&BOARD_TOPIC[1], payload);
 };
