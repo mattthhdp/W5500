@@ -32,10 +32,11 @@ const int output_pin[6] = { 4, 5, 6, 7, 8, 9 }; //Relay Pinout turn on/off light
 const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 
 //topic ou seront publish les info /// TOPIC SLASH NAMEA SLASH CLIM SLASH MAIN SLASH; ///
+#define NAME "arduino-01" //nom publish pour l'adresse ip et le uptime
 #define TOPIC "chambre"
 #define SLASH "/"
-#define NAMEA "test1"
-#define NAMEB "test2"
+#define NAMEA "samuel"
+#define NAMEB "alexis"
 #define CLIM "climat"
 #define MAIN "main"
 #define CLOSET "closet"
@@ -50,8 +51,8 @@ const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 #define ZERO "0"
 #define UPTIME "uptime"
 //Topic du Board pour adresse IP
-const char BOARD_TOPIC0[] PROGMEM = TOPIC SLASH NAMEA;
-const char BOARD_TOPIC1[] PROGMEM = TOPIC SLASH NAMEA UPTIME;
+const char BOARD_TOPIC0[] PROGMEM = TOPIC SLASH NAME;
+const char BOARD_TOPIC1[] PROGMEM = TOPIC SLASH NAME UPTIME;
 
 const char* const BOARD_TOPIC[] PROGMEM = { BOARD_TOPIC0, BOARD_TOPIC1 };
 // En Theorie rien en dessous de ca devrait etre touche //
@@ -140,7 +141,6 @@ void reconnect()
     if (client.connect(clientBuffer)) 
     {
 
-      //todo mettre le publish en progmem et utiliser la commande
       //Serial.println(clientBuffer);
       //client.publish("chambre/test/ip/", clientBuffer);
       ConvertAndSend (&BOARD_TOPIC [0], clientBuffer);
@@ -384,6 +384,5 @@ void print_Uptime(){
     //Serial.print(payload);
     //Serial.println();
 
-//todo Mettre le publish en progmem et utilise la commande
     ConvertAndSend (&BOARD_TOPIC[1], payload);
 };
