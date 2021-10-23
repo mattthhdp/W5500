@@ -182,13 +182,16 @@ void setup()
 
   button2.attachClick(click2);
   button2.attachDoubleClick(doubleclick2);
+  button2.attachLongPressStart(longPressStart2);
 
   button3.attachClick(click3);
   button3.attachDoubleClick(doubleclick3);
+  button3.attachLongPressStart(longPressStart3);
 
   button4.attachClick(click4);
   button4.attachDoubleClick(doubleclick4);
-  
+  button4.attachLongPressStart(longPressStart4);
+
 }
 
 void loop()
@@ -290,10 +293,10 @@ void doubleclick2()
   {
   ConvertAndSend (&INPUTPUBLISH[4], UN);
   } 
-// void longPressStart2() 
-// {
-//ConvertAndSend (&INPUTPUBLISH[5], UN);
-// } 
+void longPressStart2() 
+{
+ConvertAndSend (&INPUTPUBLISH[5], UN);
+} 
 //Buton3
 void click3() 
   {
@@ -303,10 +306,10 @@ void doubleclick3()
   {
   ConvertAndSend (&INPUTPUBLISH[7], UN);
   } 
-// void longPressStart3() 
-// {
-//ConvertAndSend (&INPUTPUBLISH[8], UN);
-// } 
+void longPressStart3() 
+{
+ConvertAndSend (&INPUTPUBLISH[8], UN);
+} 
 //buton4
 void click4() 
   {
@@ -316,10 +319,10 @@ void doubleclick4()
   {
   ConvertAndSend (&INPUTPUBLISH[10], UN);
   } 
-// void longPressStart4() 
-// {
-//ConvertAndSend (&INPUTPUBLISH[11], UN);
-// } 
+void longPressStart4() 
+{
+ConvertAndSend (&INPUTPUBLISH[11], UN);
+} 
 //Boutons
 
 //Conteur pour le UPTIME (temps depuis qu'il est en marche)
