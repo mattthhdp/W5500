@@ -1,48 +1,49 @@
 #include <OneButton.h>
-
 #include <DHT.h>
 #include <PubSubClient.h>
 #include <Ethernet.h>
 
 //Static Mac Address
-static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0x04 };  // Chambre enfant 0x02 /0x04 = test
-
+static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0x02 };  // Chambre enfant 0x02
+                                                                // master cuisine 0x04
 // MQTT Settings //
 const char* broker = "ubuntu.jaune.lan"; // MQTT broker
 
 #define DHTTYPE DHT22
-#define DHTPIN0  A0 //alexis main dht22
-#define DHTPIN1  A1 //alexis closet dht22
-#define DHTPIN2  A2 //samuel main dht22
-#define DHTPIN3  A3 //samuel closet dht22
-OneButton button1(A4, false , false); //alexis main light switch
-OneButton button2(2, false, false); //alexis closet light switch
-OneButton button3(A5, false, false); //samuel main light switch
-OneButton button4(3, false, false); //samuel closet light switch
+#define DHTPIN0  A0 //al main dht22
+#define DHTPIN1  A1 //al closet dht22
+#define DHTPIN2  A2 //sam main dht22
+#define DHTPIN3  A3 //sam closet dht22
+OneButton button1(A4, false, false); //al main light switch
+OneButton button2(2, false, false); //al closet light switch
+OneButton button3(A5, false, false); //sam main light switch
+OneButton button4(3, false, false); //sam closet light switch
 
 const int output_pin[6] = { 4, 5, 6, 7, 8, 9 }; //Relay Pinout turn on/off light et chauffage
-//4= light main alexis
-//5= light closet alexis
-//6= chauffage main alexis
-//7= light main samuel
-//8= light closet samuel
-//9= chauffage main samuel
+//4= light main al
+//5= light closet al
+//6= chauffage main al
+//7= light main sam
+//8= light closet sam
+//9= chauffage main sam
 
 //pinout A0-A5  2-9
 const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 
 //topic ou seront publish les info /// TOPIC SLASH NAMEA SLASH CLIM SLASH MAIN SLASH; ///
-#define NAME "arduino-01" //nom publish pour l'adresse ip et le uptime
+#define NAME "arduino-enfants" //nom publish pour l'adresse ip et le uptime
 #define TOPIC "chambre"
 #define SLASH "/"
-#define NAMEA "samuel"
-#define NAMEB "alexis"
+#define NAMEA "al"
+#define NAMEB "sam"
 #define CLIM "climat"
 #define MAIN "main"
 #define CLOSET "closet"
 
 #define LIGHT "light"
+#define SW "switch"
 #define STATUS "status"
+#define COMMAND "command"
 #define HEAT "heat"
 #define SIMPLE "simple"
 #define DOUBLE "double"
@@ -50,10 +51,10 @@ const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 #define UN "1"
 #define ZERO "0"
 #define UPTIME "uptime"
+#define IP "ip"
 //Topic du Board pour adresse IP
-const char BOARD_TOPIC0[] PROGMEM = TOPIC SLASH NAME;
-const char BOARD_TOPIC1[] PROGMEM = TOPIC SLASH NAME UPTIME;
-
+const char BOARD_TOPIC0[] PROGMEM = TOPIC SLASH NAME SLASH IP;
+const char BOARD_TOPIC1[] PROGMEM = TOPIC SLASH NAME SLASH UPTIME;
 const char* const BOARD_TOPIC[] PROGMEM = { BOARD_TOPIC0, BOARD_TOPIC1 };
 // En Theorie rien en dessous de ca devrait etre touche //
 
@@ -73,32 +74,38 @@ const char DHT_TOPICA2[] PROGMEM = TOPIC SLASH NAMEA SLASH CLIM SLASH CLOSET SLA
 const char DHT_TOPICB1[] PROGMEM = TOPIC SLASH NAMEB SLASH CLIM SLASH MAIN SLASH;
 const char DHT_TOPICB2[]  PROGMEM = TOPIC SLASH NAMEB SLASH CLIM SLASH CLOSET SLASH;
 const char* const DHT_TOPIC[4]  PROGMEM = { DHT_TOPICA1, DHT_TOPICA2, DHT_TOPICB1, DHT_TOPICB2 };
-
 //Les output pour driver les relay lumieres et chauffage
-const char SUBSCRIBERELAY0[] = TOPIC SLASH NAMEA SLASH LIGHT SLASH MAIN SLASH STATUS SLASH;
-const char SUBSCRIBERELAY1[] = TOPIC SLASH NAMEA SLASH LIGHT SLASH CLOSET SLASH STATUS SLASH;
-const char SUBSCRIBERELAY2[] = TOPIC SLASH NAMEA SLASH HEAT SLASH MAIN SLASH STATUS SLASH;
-const char SUBSCRIBERELAY3[] = TOPIC SLASH NAMEB SLASH LIGHT SLASH MAIN SLASH STATUS SLASH;
-const char SUBSCRIBERELAY4[] = TOPIC SLASH NAMEB SLASH LIGHT SLASH CLOSET SLASH STATUS SLASH;
-const char SUBSCRIBERELAY5[] = TOPIC SLASH NAMEB SLASH HEAT SLASH MAIN SLASH STATUS SLASH;;
-const char* const SUBSCRIBERELAY[] =  { SUBSCRIBERELAY0, SUBSCRIBERELAY1, SUBSCRIBERELAY2 ,SUBSCRIBERELAY3 ,SUBSCRIBERELAY4 ,SUBSCRIBERELAY5 };
+const char SUBRELAY0[] = TOPIC SLASH NAMEA SLASH LIGHT SLASH MAIN SLASH STATUS SLASH;
+const char SUBRELAY1[] = TOPIC SLASH NAMEA SLASH LIGHT SLASH CLOSET SLASH STATUS SLASH;
+const char SUBRELAY2[] = TOPIC SLASH NAMEA SLASH HEAT SLASH MAIN SLASH STATUS SLASH;
+const char SUBRELAY3[] = TOPIC SLASH NAMEB SLASH LIGHT SLASH MAIN SLASH STATUS SLASH;
+const char SUBRELAY4[] = TOPIC SLASH NAMEB SLASH LIGHT SLASH CLOSET SLASH STATUS SLASH;
+const char SUBRELAY5[] = TOPIC SLASH NAMEB SLASH HEAT SLASH MAIN SLASH STATUS SLASH;;
+const char* const SUBRELAY[] =  { SUBRELAY0, SUBRELAY1, SUBRELAY2 ,SUBRELAY3 ,SUBRELAY4 ,SUBRELAY5 };
+
+const char COMRELAY0[] = TOPIC SLASH NAMEA SLASH LIGHT SLASH MAIN SLASH COMMAND SLASH;
+const char COMRELAY1[] = TOPIC SLASH NAMEA SLASH LIGHT SLASH CLOSET SLASH COMMAND SLASH;
+const char COMRELAY2[] = TOPIC SLASH NAMEA SLASH HEAT SLASH MAIN SLASH COMMAND SLASH;
+const char COMRELAY3[] = TOPIC SLASH NAMEB SLASH LIGHT SLASH MAIN SLASH COMMAND SLASH;
+const char COMRELAY4[] = TOPIC SLASH NAMEB SLASH LIGHT SLASH CLOSET SLASH COMMAND SLASH;
+const char COMRELAY5[] = TOPIC SLASH NAMEB SLASH HEAT SLASH MAIN SLASH COMMAND SLASH;;
+const char* const COMRELAY[] =  { COMRELAY0, COMRELAY1, COMRELAY2 ,COMRELAY3 ,COMRELAY4 ,COMRELAY5 };
 
 // Input pour les boutton de lumiere (single, double et long)
-const char INPUTPUBLISH0[] PROGMEM = TOPIC SLASH NAMEA SLASH LIGHT SLASH MAIN SLASH SIMPLE SLASH;
-const char INPUTPUBLISH1[] PROGMEM = TOPIC SLASH NAMEA SLASH LIGHT SLASH MAIN SLASH DOUBLE SLASH;
-const char INPUTPUBLISH2[] PROGMEM = TOPIC SLASH NAMEA SLASH LIGHT SLASH MAIN SLASH LONG SLASH;
-const char INPUTPUBLISH3[] PROGMEM = TOPIC SLASH NAMEA SLASH LIGHT SLASH CLOSET SLASH SIMPLE SLASH;
-const char INPUTPUBLISH4[] PROGMEM = TOPIC SLASH NAMEA SLASH LIGHT SLASH CLOSET SLASH DOUBLE SLASH;
-const char INPUTPUBLISH5[] PROGMEM = TOPIC SLASH NAMEA SLASH LIGHT SLASH CLOSET SLASH LONG SLASH;
-const char INPUTPUBLISH6[] PROGMEM = TOPIC SLASH NAMEB SLASH LIGHT SLASH MAIN SLASH SIMPLE SLASH;
-const char INPUTPUBLISH7[] PROGMEM = TOPIC SLASH NAMEB SLASH LIGHT SLASH MAIN SLASH DOUBLE SLASH;
-const char INPUTPUBLISH8[] PROGMEM = TOPIC SLASH NAMEB SLASH LIGHT SLASH MAIN SLASH LONG SLASH;
-const char INPUTPUBLISH9[] PROGMEM = TOPIC SLASH NAMEB SLASH LIGHT SLASH CLOSET SLASH SIMPLE SLASH;
-const char INPUTPUBLISH10[] PROGMEM = TOPIC SLASH NAMEB SLASH LIGHT SLASH CLOSET SLASH DOUBLE SLASH;
-const char INPUTPUBLISH11[] PROGMEM = TOPIC SLASH NAMEB SLASH LIGHT SLASH CLOSET SLASH LONG SLASH;
+const char INPUTPUBLISH0[] PROGMEM = TOPIC SLASH NAMEA SLASH SW SLASH MAIN SLASH SIMPLE SLASH;
+const char INPUTPUBLISH1[] PROGMEM = TOPIC SLASH NAMEA SLASH SW SLASH MAIN SLASH DOUBLE SLASH;
+const char INPUTPUBLISH2[] PROGMEM = TOPIC SLASH NAMEA SLASH SW SLASH MAIN SLASH LONG SLASH;
+const char INPUTPUBLISH3[] PROGMEM = TOPIC SLASH NAMEA SLASH SW SLASH CLOSET SLASH SIMPLE SLASH;
+const char INPUTPUBLISH4[] PROGMEM = TOPIC SLASH NAMEA SLASH SW SLASH CLOSET SLASH DOUBLE SLASH;
+const char INPUTPUBLISH5[] PROGMEM = TOPIC SLASH NAMEA SLASH SW SLASH CLOSET SLASH LONG SLASH;
+const char INPUTPUBLISH6[] PROGMEM = TOPIC SLASH NAMEB SLASH SW SLASH MAIN SLASH SIMPLE SLASH;
+const char INPUTPUBLISH7[] PROGMEM = TOPIC SLASH NAMEB SLASH SW SLASH MAIN SLASH DOUBLE SLASH;
+const char INPUTPUBLISH8[] PROGMEM = TOPIC SLASH NAMEB SLASH SW SLASH MAIN SLASH LONG SLASH;
+const char INPUTPUBLISH9[] PROGMEM = TOPIC SLASH NAMEB SLASH SW SLASH CLOSET SLASH SIMPLE SLASH;
+const char INPUTPUBLISH10[] PROGMEM = TOPIC SLASH NAMEB SLASH SW SLASH CLOSET SLASH DOUBLE SLASH;
+const char INPUTPUBLISH11[] PROGMEM = TOPIC SLASH NAMEB SLASH SW SLASH CLOSET SLASH LONG SLASH;
 const char* const INPUTPUBLISH[] PROGMEM =  {INPUTPUBLISH0, INPUTPUBLISH1, INPUTPUBLISH2, INPUTPUBLISH3, INPUTPUBLISH4, INPUTPUBLISH5,
                                              INPUTPUBLISH6, INPUTPUBLISH7, INPUTPUBLISH8, INPUTPUBLISH9, INPUTPUBLISH10, INPUTPUBLISH11 };
-
 
 DHT dht[] = { { DHTPIN0, DHTTYPE }, { DHTPIN1, DHTTYPE }, { DHTPIN2, DHTTYPE }, { DHTPIN3, DHTTYPE } }; // { DHTPIN4, DHTTYPE }, { DHTPIN5, DHTTYPE } };
 
@@ -107,27 +114,28 @@ PubSubClient client(ethclient);
 
 void callback(char* topic, byte* payload, unsigned int length)
 {
-  Serial.println(topic);
+  //Serial.print(topic);
   byte output_number = payload[0] - '0';
 
-  for (int i = 0; i < sizeof(SUBSCRIBERELAY) / sizeof(SUBSCRIBERELAY[0]); i++)
+  for (int i = 0; i < sizeof(SUBRELAY) / sizeof(SUBRELAY[0]); i++)
   {
-    int strcomparison = strcmp(topic, SUBSCRIBERELAY[i]);
+    int strcomparison = strcmp(topic, COMRELAY[i]);
     if (strcomparison == 0)
     {
       if (output_number == 1)// || ((char)payload[0] == '1'))
-      ConvertAndSend (&SUBSCRIBERELAY [i], UN);
       {
         digitalWrite(output_pin[i], HIGH);
+       // ConvertAndSend (&SUBRELAY[i], UN);
+      client.publish(SUBRELAY[i],"ON");
       }
       if (output_number == 0)
       {
         digitalWrite(output_pin[i], LOW);
-        ConvertAndSend (&SUBSCRIBERELAY [i], ZERO);
+        //ConvertAndSend (&SUBRELAY [i], ZERO);
+        client.publish(SUBRELAY[i],"OFF");
 
       }
     }
-
   }
 }
 
@@ -136,61 +144,53 @@ void reconnect()
   while (!client.connected()) 
   {
     char clientBuffer[60];
-    String clientString = "ip : "+ String(Ethernet.localIP()[0]) + "." + String(Ethernet.localIP()[1]) + "." + String(Ethernet.localIP()[2]) + "." + String(Ethernet.localIP()[3]);
+    String clientString = String(Ethernet.localIP()[0]) + "." + String(Ethernet.localIP()[1]) + "." + String(Ethernet.localIP()[2]) + "." + String(Ethernet.localIP()[3]);
     clientString.toCharArray(clientBuffer, clientString.length() + 1);
     if (client.connect(clientBuffer)) 
     {
-
-      //Serial.println(clientBuffer);
-      //client.publish("chambre/test/ip/", clientBuffer);
-      ConvertAndSend (&BOARD_TOPIC [0], clientBuffer);
-
-      for (int i = 0; i < sizeof(SUBSCRIBERELAY) / sizeof(SUBSCRIBERELAY[0]); i++)
+      ConvertAndSend (&BOARD_TOPIC[0], clientBuffer);
+      //Serial.print(clientBuffer);
+      for (int i = 0; i < sizeof(SUBRELAY) / sizeof(SUBRELAY[0]); i++)
       {
-        client.subscribe(SUBSCRIBERELAY[i]);
-        Serial.print(F("Relay Subscribe : "));
-        Serial.println(SUBSCRIBERELAY[i]);
+        client.subscribe(COMRELAY[i]);
+        //Serial.print(F("Relay Subscribe : "));
+        //Serial.println(SUBRELAY[i]);
       }
     }
   }
 }
+
 void setup()
 {
-  Serial.begin(115200);
-  Serial.println(F("Getting IP"));
+  //Serial.begin(115200);
+  //Serial.println(F("Getting IP"));
   while (!Ethernet.begin(mac))  { }
-  Serial.println(F("Ip Acquired"));
+  //Serial.println(F("Ip Acquired"));
 
   enable_and_reset_all_outputs(); //Reset and Set all pin on OUTPUT mode
 
   client.setServer(broker, 1883);
   client.setCallback(callback);
 
-  //Serial.println(F("DHT Begin"));
   for (int i = 0; i < sizeof(DHT_TOPIC) / sizeof(DHT_TOPIC[0]); i++)
     {
       dht[i].begin();
     }
-
   button1.attachClick(click1);
   button1.attachDoubleClick(doubleclick1);
   button1.attachLongPressStart(longPressStart1);
-  //button1.attachLongPressStop(longPressStop1);
-  //button1.attachDuringLongPress(longPress1);
 
   button2.attachClick(click2);
   button2.attachDoubleClick(doubleclick2);
-  //button2.attachLongPressStart(longPressStart2);
+  button2.attachLongPressStart(longPressStart2);
 
-   button3.attachClick(click3);
-   button3.attachDoubleClick(doubleclick3);
-   //button3.attachLongPressStart(longPressStart3);
+  button3.attachClick(click3);
+  button3.attachDoubleClick(doubleclick3);
+  button3.attachLongPressStart(longPressStart3);
 
-   button4.attachClick(click4);
-   button4.attachDoubleClick(doubleclick4);
-   //button4.attachLongPressStart(longPressStart4);
-  
-  reconnect();
+  button4.attachClick(click4);
+  button4.attachDoubleClick(doubleclick4);
+  button4.attachLongPressStart(longPressStart4);
 
 }
 
@@ -198,7 +198,6 @@ void loop()
 {
   if (!client.connected())
   {
-   //Serial.println(F("reconnect"));
    reconnect();
   }
 
@@ -210,7 +209,6 @@ void loop()
   }
   uptime();
 
-  
   button1.tick();
   button2.tick();
   button3.tick();
@@ -218,7 +216,6 @@ void loop()
 
   client.loop();
 }
-
 //Lecture des Senseur Temperature, humidite et calcul du heat index (Temperature ressentie)
 void readDHT()
 {
@@ -251,18 +248,20 @@ void readDHT()
 
 void ConvertAndSend (const char * const * topic, String payload)
   {
-
   const char *ptr = reinterpret_cast<const char *>(pgm_read_ptr (topic));  // pointer to message
-  Serial.println(reinterpret_cast<const __FlashStringHelper *>(ptr));    // and print it
-  Serial.println(payload);
+
   String temp = reinterpret_cast<const __FlashStringHelper *>(ptr);
   const char *test = temp.c_str();
   client.publish(test ,  payload.c_str());
+  //Serial.print(test);
+  //Serial.print(payload);
+  //Serial.println();
+
   } 
 
 void enable_and_reset_all_outputs()
 {
-  for (int i = 0; i < sizeof(SUBSCRIBERELAY) / sizeof(SUBSCRIBERELAY[0]); i++)
+  for (int i = 0; i < sizeof(SUBRELAY) / sizeof(SUBRELAY[0]); i++)
   {
     pinMode(output_pin[i], INPUT_PULLUP);
     pinMode(output_pin[i], OUTPUT);
@@ -270,78 +269,61 @@ void enable_and_reset_all_outputs()
   }
 }
 
+//Boutons
 
 //Boutton1
 void click1() 
-{
-  ConvertAndSend (&INPUTPUBLISH[0], UN);
-
-  //int sensorValue = digitalRead(0);
-  //Serial.println(sensorValue, DEC);
-
-} 
+  {
+    ConvertAndSend (&INPUTPUBLISH[0], UN);
+  } 
 void doubleclick1() 
-{
-ConvertAndSend (&INPUTPUBLISH[1], UN);
-
- //int sensorValue = digitalRead(1);
- //Serial.println(sensorValue, DEC);
-
-} 
+  {
+  ConvertAndSend (&INPUTPUBLISH[1], UN);
+  } 
 void longPressStart1() 
-{
-ConvertAndSend (&INPUTPUBLISH[2], UN);
-
-//  int sensorValue = digitalRead(2);
-//   Serial.println(sensorValue, DEC);
-
-} 
-
-
+  {
+  ConvertAndSend (&INPUTPUBLISH[2], UN);
+  } 
 //Boutton2
 void click2() 
-{
-ConvertAndSend (&INPUTPUBLISH[3], UN);
-} 
+  {
+  ConvertAndSend (&INPUTPUBLISH[3], UN);
+  } 
 void doubleclick2() 
+  {
+  ConvertAndSend (&INPUTPUBLISH[4], UN);
+  } 
+void longPressStart2() 
 {
-ConvertAndSend (&INPUTPUBLISH[4], UN);
+ConvertAndSend (&INPUTPUBLISH[5], UN);
 } 
-// void longPressStart2() 
-// {
-//ConvertAndSend (&INPUTPUBLISH[5], UN);
-// } 
-
 //Buton3
 void click3() 
-{
-ConvertAndSend (&INPUTPUBLISH[6], UN);
-} 
+  {
+  ConvertAndSend (&INPUTPUBLISH[6], UN);
+  } 
 void doubleclick3() 
+  {
+  ConvertAndSend (&INPUTPUBLISH[7], UN);
+  } 
+void longPressStart3() 
 {
-ConvertAndSend (&INPUTPUBLISH[7], UN);
+ConvertAndSend (&INPUTPUBLISH[8], UN);
 } 
-// void longPressStart3() 
-// {
-//ConvertAndSend (&INPUTPUBLISH[8], UN);
-// } 
-
 //buton4
 void click4() 
-{
-ConvertAndSend (&INPUTPUBLISH[9], UN);
-} 
+  {
+  ConvertAndSend (&INPUTPUBLISH[9], UN);
+  } 
 void doubleclick4() 
+  {
+  ConvertAndSend (&INPUTPUBLISH[10], UN);
+  } 
+void longPressStart4() 
 {
-ConvertAndSend (&INPUTPUBLISH[10], UN);
+ConvertAndSend (&INPUTPUBLISH[11], UN);
 } 
-// void longPressStart4() 
-// {
-//ConvertAndSend (&INPUTPUBLISH[11], UN);
-// } 
-
-
-
+//Boutons
 
 //Conteur pour le UPTIME (temps depuis qu'il est en marche)
 void uptime()
@@ -379,10 +361,6 @@ void print_Uptime(){
     payload += "\"Minute\":"; payload += (Minute < 10 ? "0" : "") + String(Minute); payload += ",";
     payload += "\"Second\":"; payload += (Second < 10 ? "0" : "") + String(Second);
     payload += "}";
-
-    //client.publish("chambre/test/uptime/", payload.c_str());
-    //Serial.print(payload);
-    //Serial.println();
 
     ConvertAndSend (&BOARD_TOPIC[1], payload);
 };
