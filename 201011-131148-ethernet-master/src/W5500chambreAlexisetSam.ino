@@ -176,6 +176,8 @@ void setup()
     {
       dht[i].begin();
     }
+
+  #pragma region Initialize the Buton
   button1.attachClick(click1);
   button1.attachDoubleClick(doubleclick1);
   button1.attachLongPressStart(longPressStart1);
@@ -191,7 +193,7 @@ void setup()
   button4.attachClick(click4);
   button4.attachDoubleClick(doubleclick4);
   button4.attachLongPressStart(longPressStart4);
-
+  #pragma endregion Toute l'initialisation des boutons click,doubleclick, longclick
 }
 
 void loop()
@@ -216,8 +218,8 @@ void loop()
 
   client.loop();
 }
-//Lecture des Senseur Temperature, humidite et calcul du heat index (Temperature ressentie)
-void readDHT()
+void readDHT() //Lecture des Senseur Temperature, humidite et calcul du heat index (Temperature ressentie)
+
 {
   for (int i = 0; i < sizeof(DHT_TOPIC) / sizeof(DHT_TOPIC[0]); i++)
   {
@@ -245,8 +247,7 @@ void readDHT()
   }
 }
 
-
-void ConvertAndSend (const char * const * topic, String payload)
+void ConvertAndSend (const char * const * topic, String payload) //Voodoo magic publish
   {
   const char *ptr = reinterpret_cast<const char *>(pgm_read_ptr (topic));  // pointer to message
 
@@ -256,10 +257,9 @@ void ConvertAndSend (const char * const * topic, String payload)
   //Serial.print(test);
   //Serial.print(payload);
   //Serial.println();
-
   } 
 
-void enable_and_reset_all_outputs()
+void enable_and_reset_all_outputs() //Setup des boutons
 {
   for (int i = 0; i < sizeof(SUBRELAY) / sizeof(SUBRELAY[0]); i++)
   {
@@ -269,7 +269,7 @@ void enable_and_reset_all_outputs()
   }
 }
 
-//Boutons
+#pragma region Button Gestion du simple double et long press
 
 //Boutton1
 void click1() 
@@ -323,10 +323,9 @@ void longPressStart4()
 {
 ConvertAndSend (&INPUTPUBLISH[11], UN);
 } 
-//Boutons
+#pragma endregion Button
 
-//Conteur pour le UPTIME (temps depuis qu'il est en marche)
-void uptime()
+void uptime() //Conteur pour le UPTIME (temps depuis qu'il est en marche)
 {
   //** Making Note of an expected rollover *****//   
   if(millis()>=3000000000)
@@ -352,8 +351,7 @@ Day = (Rollover*50)+(secsUp/(60*60*24));  //First portion takes care of a rollov
                        
 };
 
-//imprime et publish au format JSON
-void print_Uptime(){
+void print_Uptime(){ //imprime et publish au format JSON
 
     String payload = "{";
     payload += "\"uptime\":"; payload += String(Day); payload += ",";
