@@ -30,7 +30,7 @@ const int output_pin[6] = { 4, 5, 6, 7, 8, 9 }; //Relay Pinout turn on/off light
 //pinout A0-A5  2-9
 const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 
-//topic ou seront publish les info /// TOPIC SLASH NAMEA SLASH CLIM SLASH MAIN SLASH; ///
+//topic ou seront publish les info /// TOPIC SLASH NAMEA SLASH CLIM SLASH MAIN SLASH; /// essai de universelle
 #define NAME "Test" //nom publish pour l'adresse ip et le uptime
 #define TOPIC "chambre"
 #define SLASH "/"
