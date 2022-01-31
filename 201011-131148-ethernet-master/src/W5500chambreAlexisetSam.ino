@@ -4,7 +4,7 @@
 #include <Ethernet.h>
 
 //Static Mac Address
-static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xF3 };  // Chambre enfant 0x02  //AA TEST //AR-01 FF
+static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xAA };  // Chambre enfant 0x02  //AA TEST //AR-01 FF ar-02 F3
                                                                 // master cuisine 0x04
 // MQTT Settings //
 const char* broker = "ubuntu.jaune.lan"; // MQTT broker
@@ -15,8 +15,8 @@ const char* broker = "ubuntu.jaune.lan"; // MQTT broker
 #define DHTPIN2  A2 //sam main dht22
 #define DHTPIN3  A3 //sam closet dht22
 OneButton button1(A4, false, false); //al main light switch
-OneButton button2(2, false, false); //al closet light switch
-OneButton button3(A5, false, false); //sam main light switch
+OneButton button2(A5, false, false); //al closet light switch
+OneButton button3(2, false, false); //sam main light switch
 OneButton button4(3, false, false); //sam closet light switch
 
 const int output_pin[6] = { 4, 5, 6, 7, 8, 9 }; //Relay Pinout turn on/off light et chauffage
@@ -31,7 +31,7 @@ const int output_pin[6] = { 4, 5, 6, 7, 8, 9 }; //Relay Pinout turn on/off light
 const int sendDhtInfo = 30000;    // Dht22 will report every X milliseconds.
 
 //topic ou seront publish les info /// TOPIC SLASH NAMEA SLASH CLIM SLASH MAIN SLASH; /// essai de universelle
-#define NAME "AR-02" //nom publish pour l'adresse ip et le uptime
+#define NAME "AR-test" //nom publish pour l'adresse ip et le uptime
 #define TOPIC "ch"
 #define SLASH "/"
 #define NAMEA "A"
