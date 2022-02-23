@@ -8,15 +8,16 @@ Ne pas oublier de changer le MAC, mqtt Broker, et NAME (lligne 7,10,11)
 
 W5500
 ## Output relay
-pins 4 = AR-test/ch/A/lgt/1/cmd/  1 = on 0 = off
-pins 5 = AR-test/ch/A/lgt/2/cmd/  1 = on 0 = off
-pins 6 = AR-test/ch/A/ht/1/cmd/  1 = on 0 = off
-pins 7 = AR-test/ch/B/lgt/1/cmd/  1 = on 0 = off
-pins 8 = AR-test/ch/B/lgt/2/cmd/  1 = on 0 = off
-pins 9 = AR-test/ch/B/ht/1/cmd/  1 = on 0 = off
-state_topic: "AR-01/ch/*/*/1/sta/" confirmation du changement de status
+- pins 4 = AR-test/ch/A/lgt/1/cmd/  1 = on 0 = off
+- pins 5 = AR-test/ch/A/lgt/2/cmd/  1 = on 0 = off
+- pins 6 = AR-test/ch/A/ht/1/cmd/  1 = on 0 = off
+- pins 7 = AR-test/ch/B/lgt/1/cmd/  1 = on 0 = off
+- pins 8 = AR-test/ch/B/lgt/2/cmd/  1 = on 0 = off
+- pins 9 = AR-test/ch/B/ht/1/cmd/  1 = on 0 = off
+- state_topic: "AR-01/ch/*/*/1/sta/" confirmation du changement de status
 
 ## Temperature DHT22
+`
 - platform: mqtt
 name: "Alexis Chambre Master Temperature"
 state_topic: "AR-01/ch/A/cli/1/"
@@ -32,8 +33,9 @@ name: "Alexis Chambre Master Heat Index"
 state_topic: "AR-01/ch/A/cli/1/"
 unit_of_measurement: '°C'
 value_template: "{{ value_json.heatindex}}"
-
+`
 ## Input Switch 
+`
 - alias: Alexis Main Simple Click
   trigger:
     platform: mqtt
@@ -80,3 +82,4 @@ value_template: "{{ value_json.heatindex}}"
         #   - "{{ range(255)|random }}"
         #   - "{{ range(255)|random }}"
         #   - "{{ range(255)|random }}"
+`
