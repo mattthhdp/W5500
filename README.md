@@ -17,6 +17,12 @@ W5500
 - state_topic: "AR-01/ch/*/*/1/sta/" confirmation du changement de status
 
 ## Temperature DHT22
+
+- pins A0 = AR-01/ch/A/cli/1/
+- pins A1 = AR-01/ch/A/cli/2/
+- pins A2 = AR-01/ch/B/cli/1/
+- pins A3 = AR-01/ch/B/cli/2/
+
 ```
 - platform: mqtt
 name: "Alexis Chambre Master Temperature"
@@ -35,6 +41,20 @@ unit_of_measurement: '°C'
 value_template: "{{ value_json.heatindex}}"
 ```
 ## Input Switch 
+- pins A4 = AR-01/ch/A/sw/1/s/
+- pins A4 = AR-01/ch/A/sw/1/d/
+- pins A4 = AR-01/ch/A/sw/1/l/
+- pins A5 = AR-01/ch/A/sw/2/s/
+- pins A5 = AR-01/ch/A/sw/2/d/
+- pins A5 = AR-01/ch/A/sw/2/l/
+- pins 2 = AR-01/ch/B/sw/1/s/
+- pins 2 = AR-01/ch/B/sw/1/d/
+- pins 2 = AR-01/ch/B/sw/1/l/
+- pins 3 = AR-01/ch/B/sw/2/s/
+- pins 3 = AR-01/ch/B/sw/2/d/
+- pins 3 = AR-01/ch/B/sw/2/l/
+
+
 ```
 - alias: Alexis Main Simple Click
   trigger:
