@@ -1,5 +1,5 @@
 {
     "programmer": "AVR ISP",
     "board": "arduino:avr:ethernet",
-    "sketch": "chambre\\MasterBedroom.ino"
+    "sketch": "chambre\\W5500Board.ino"
 }
