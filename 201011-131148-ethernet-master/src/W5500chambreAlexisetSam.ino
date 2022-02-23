@@ -193,10 +193,7 @@ void setup()
   button4.attachClick(click4);
   button4.attachDoubleClick(doubleclick4);
   button4.attachLongPressStart(longPressStart4);
-<<<<<<< HEAD
   #pragma endregion Toute l'initialisation des boutons click,doubleclick, longclick
-=======
->>>>>>> Test
 }
 
 void loop()
