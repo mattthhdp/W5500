@@ -17,7 +17,7 @@ W5500
 - state_topic: "AR-01/ch/*/*/1/sta/" confirmation du changement de status
 
 ## Temperature DHT22
-`
+```
 - platform: mqtt
 name: "Alexis Chambre Master Temperature"
 state_topic: "AR-01/ch/A/cli/1/"
@@ -33,9 +33,9 @@ name: "Alexis Chambre Master Heat Index"
 state_topic: "AR-01/ch/A/cli/1/"
 unit_of_measurement: '°C'
 value_template: "{{ value_json.heatindex}}"
-`
+```
 ## Input Switch 
-`
+```
 - alias: Alexis Main Simple Click
   trigger:
     platform: mqtt
@@ -82,4 +82,4 @@ value_template: "{{ value_json.heatindex}}"
         #   - "{{ range(255)|random }}"
         #   - "{{ range(255)|random }}"
         #   - "{{ range(255)|random }}"
-`
+```
