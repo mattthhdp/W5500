@@ -8,12 +8,12 @@ Ne pas oublier de changer le MAC, mqtt Broker, et NAME (lligne 7,10,11)
 
 W5500
 ## Output relay
-- pins 4 = AR-test/ch/A/lgt/1/cmd/  1 = on 0 = off
-- pins 5 = AR-test/ch/A/lgt/2/cmd/  1 = on 0 = off
-- pins 6 = AR-test/ch/A/ht/1/cmd/  1 = on 0 = off
-- pins 7 = AR-test/ch/B/lgt/1/cmd/  1 = on 0 = off
-- pins 8 = AR-test/ch/B/lgt/2/cmd/  1 = on 0 = off
-- pins 9 = AR-test/ch/B/ht/1/cmd/  1 = on 0 = off
+- pins 4 = AR-test/ch/A/r/0/cmd/  1 = on 0 = off
+- pins 5 = AR-test/ch/A/r/1/cmd/  1 = on 0 = off
+- pins 6 = AR-test/ch/A/r/2/cmd/  1 = on 0 = off
+- pins 7 = AR-test/ch/B/r/0/cmd/  1 = on 0 = off
+- pins 8 = AR-test/ch/B/r/1/cmd/  1 = on 0 = off
+- pins 9 = AR-test/ch/B/r/2/cmd/  1 = on 0 = off
 - state_topic: "AR-01/ch/*/*/1/sta/" confirmation du changement de status
 
 ## Temperature DHT22
@@ -53,7 +53,7 @@ value_template: "{{ value_json.heatindex}}"
 - pins 3 = AR-01/ch/B/sw/2/s/
 - pins 3 = AR-01/ch/B/sw/2/d/
 - pins 3 = AR-01/ch/B/sw/2/l/
-
+- payload 1
 
 ```
 - alias: Alexis Main Simple Click
