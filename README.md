@@ -103,3 +103,7 @@ value_template: "{{ value_json.heatindex}}"
         #   - "{{ range(255)|random }}"
         #   - "{{ range(255)|random }}"
 ```
+
+FAQ:
+1- Pousser sur le bord, des fois les pins sont mal enfoncé.
+
