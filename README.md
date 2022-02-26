@@ -105,5 +105,9 @@ value_template: "{{ value_json.heatindex}}"
 ```
 
 FAQ:
+- Board name,mac : 
+  - AR-test = 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xAA
+  - AR-01 = 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0x
+
 1- Pousser sur le bord, des fois les pins sont mal enfoncé.
 
