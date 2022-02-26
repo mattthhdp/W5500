@@ -1,4 +1,3 @@
-```
 - platform: mqtt
 name: "Alexis Chambre Master Temperature"
 state_topic: "AR-01/ch/A/cli/1/"
@@ -14,7 +13,8 @@ name: "Alexis Chambre Master Heat Index"
 state_topic: "AR-01/ch/A/cli/1/"
 unit_of_measurement: '°C'
 value_template: "{{ value_json.heatindex}}"
-```
+
+
 ## Input Switch 
 - pins A4 = AR-01/ch/A/sw/1/s/
 - pins A4 = AR-01/ch/A/sw/1/d/
