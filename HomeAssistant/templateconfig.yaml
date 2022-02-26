@@ -1,4 +1,9 @@
-```
+##DHT22 topic
+#- pins A0 = AR-01/ch/A/cli/1/
+#- pins A1 = AR-01/ch/A/cli/2/
+#- pins A2 = AR-01/ch/B/cli/1/
+#- pins A3 = AR-01/ch/B/cli/2/
+sensor:
 - platform: mqtt
 name: "Alexis Chambre Master Temperature"
 state_topic: "AR-01/ch/A/cli/1/"
@@ -14,24 +19,24 @@ name: "Alexis Chambre Master Heat Index"
 state_topic: "AR-01/ch/A/cli/1/"
 unit_of_measurement: '°C'
 value_template: "{{ value_json.heatindex}}"
-```
 
 ## Input Switch 
-- pins A4 = AR-01/ch/A/sw/1/s/
-- pins A4 = AR-01/ch/A/sw/1/d/
-- pins A4 = AR-01/ch/A/sw/1/l/
-- pins A5 = AR-01/ch/A/sw/2/s/
-- pins A5 = AR-01/ch/A/sw/2/d/
-- pins A5 = AR-01/ch/A/sw/2/l/
-- pins 2 = AR-01/ch/B/sw/1/s/
-- pins 2 = AR-01/ch/B/sw/1/d/
-- pins 2 = AR-01/ch/B/sw/1/l/
-- pins 3 = AR-01/ch/B/sw/2/s/
-- pins 3 = AR-01/ch/B/sw/2/d/
-- pins 3 = AR-01/ch/B/sw/2/l/
-- payload 1
+#- pins A4 = AR-01/ch/A/sw/1/s/
+#- pins A4 = AR-01/ch/A/sw/1/d/
+#- pins A4 = AR-01/ch/A/sw/1/l/
+#- pins A5 = AR-01/ch/A/sw/2/s/
+#- pins A5 = AR-01/ch/A/sw/2/d/
+#- pins A5 = AR-01/ch/A/sw/2/l/
+#- pins 2 = AR-01/ch/B/sw/1/s/
+#- pins 2 = AR-01/ch/B/sw/1/d/
+#- pins 2 = AR-01/ch/B/sw/1/l/
+#- pins 3 = AR-01/ch/B/sw/2/s/
+#- pins 3 = AR-01/ch/B/sw/2/d/
+#- pins 3 = AR-01/ch/B/sw/2/l/
+#- payload 1
 
-```
+automation:
+#Simple Click topic
 - alias: Alexis Main Simple Click
   trigger:
     platform: mqtt
@@ -45,8 +50,8 @@ value_template: "{{ value_json.heatindex}}"
       data:
         brightness: 255
         kelvin: 2700
-```
-```
+
+#Double click Topic
 - alias: Alexis Main Double Click
   trigger:
     platform: mqtt
@@ -61,8 +66,8 @@ value_template: "{{ value_json.heatindex}}"
         effect: "None"
         brightness: 50
         rgb_color: [255,0,0]
-```
-```
+
+#Long press Topic
 - alias: Alexis Main Long Click
   trigger:
     platform: mqtt
@@ -80,4 +85,53 @@ value_template: "{{ value_json.heatindex}}"
         #   - "{{ range(255)|random }}"
         #   - "{{ range(255)|random }}"
         #   - "{{ range(255)|random }}"
-```
+
+## Output relay
+#- pins 4 = AR-test/ch/A/r/0/cmd/  1 = on 0 = off
+#- pins 5 = AR-test/ch/A/r/1/cmd/  1 = on 0 = off
+#- pins 6 = AR-test/ch/A/r/2/cmd/  1 = on 0 = off
+#- pins 7 = AR-test/ch/B/r/0/cmd/  1 = on 0 = off
+#- pins 8 = AR-test/ch/B/r/1/cmd/  1 = on 0 = off
+#- pins 9 = AR-test/ch/B/r/2/cmd/  1 = on 0 = off
+#- state_topic: "AR-01/ch/*/*/1/sta/" confirmation du changement de status
+switch:
+
+  - platform: mqtt
+    name: "Alexis Chambre Main Relay"
+    command_topic: "AR-01/ch/A/r/0/cmd/"
+    state_topic: "AR-01/ch/A/r/0/sta/"
+    payload_on: "1"
+    payload_off: "0"
+    state_on: "ON"
+    state_off: "OFF"
+    optimistic: false
+
+  - platform: mqtt
+    name: "Alexis Chambre Closet Relay"
+    command_topic: "AR-01/ch/A/r/1/cmd/"
+    state_topic: "AR-01/ch/A/r/1/sta/"
+    payload_on: "1"
+    payload_off: "0"
+    state_on: "ON"
+    state_off: "OFF"
+    optimistic: false
+
+  - platform: mqtt
+    name: "Alexis Chambre Chauffage"
+    command_topic: "AR-01/ch/A/r/2/cmd/"
+    state_topic: "AR-01/ch/A/r/2/sta/"
+    payload_on: "1"
+    payload_off: "0"
+    state_on: "ON"
+    state_off: "OFF"
+    optimistic: false
+    retain: true
+##
+climate:
+  - platform: generic_thermostat
+    name: "Alexis Chambre Chauffage"
+    heater: switch.Alexis_chambre_chauffage
+    target_sensor: sensor.Alexis_chambre_master_temperature
+    min_temp: "15"
+    max_temp: "25"
+    away_temp: "15"
