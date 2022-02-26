@@ -1,3 +1,4 @@
+```
 - platform: mqtt
 name: "Alexis Chambre Master Temperature"
 state_topic: "AR-01/ch/A/cli/1/"
@@ -13,7 +14,7 @@ name: "Alexis Chambre Master Heat Index"
 state_topic: "AR-01/ch/A/cli/1/"
 unit_of_measurement: '°C'
 value_template: "{{ value_json.heatindex}}"
-
+```
 
 ## Input Switch 
 - pins A4 = AR-01/ch/A/sw/1/s/
@@ -44,7 +45,8 @@ value_template: "{{ value_json.heatindex}}"
       data:
         brightness: 255
         kelvin: 2700
-
+```
+```
 - alias: Alexis Main Double Click
   trigger:
     platform: mqtt
@@ -59,7 +61,8 @@ value_template: "{{ value_json.heatindex}}"
         effect: "None"
         brightness: 50
         rgb_color: [255,0,0]
-
+```
+```
 - alias: Alexis Main Long Click
   trigger:
     platform: mqtt
