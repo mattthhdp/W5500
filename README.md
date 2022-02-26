@@ -111,3 +111,6 @@ FAQ:
 
 1- Pousser sur le bord, des fois les pins sont mal enfoncé.
 
+//TODO
+ajouter la liste des ports a utiliser dans le rack avec photo
+identifier les fils/ports
