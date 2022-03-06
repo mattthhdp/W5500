@@ -4,11 +4,11 @@
 #include <Ethernet.h>
 
 //Static Mac Address
-static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xAA };  // Chambre enfant 0x02  //AA TEST //AR-01 FF ar-02 F3
+static uint8_t mac[] = { 0x00, 0xAA, 0xBB, 0xAA, 0xAA, 0xAA };  // Chambre enfant 0x02  //AA TEST //AR-01 FF ar-02 F3
 
 // MQTT Settings //
 const char* broker = "ubuntu.jaune.lan"; // MQTT broker
-#define NAME "AR-test" //nom publish pour l'adresse ip et le uptime
+#define NAME "AR-TEST" //nom publish pour l'adresse ip et le uptime
 
 #define DHTTYPE DHT22
 #define DHTPIN0  A0 
